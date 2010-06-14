@@ -17,30 +17,29 @@ Messages we understand:
     src: 0x68 (radio)
         dest: 0x73 (satellite radio)
     
-        cmd: 0x01 — "are you there" from radio; sent every 10s or so
-    
-        cmd: 0x3D
-            data byte 1:
-                0x00 — power @todo
-                0x01 — mode @todo
-                0x02 — now @todo
-                0x03 — channel up
-                0x04 — channel down
-                0x05 — channel up and hold
-                0x06 — channel down and hold
+            cmd: 0x01 — "are you there" from radio; sent every 10s or so
+            cmd: 0x3D
+                data byte 1:
+                    0x00 — power @todo
+                    0x01 — mode @todo
+                    0x02 — now @todo
+                    0x03 — channel up
+                    0x04 — channel down
+                    0x05 — channel up and hold
+                    0x06 — channel down and hold
             
-                0x08 — preset button pressed
-                0x09 — preset button press and hold
-                    data byte 2 is preset number (0x01, 0x02, … 0x06)
+                    0x08 — preset button pressed
+                    0x09 — preset button press and hold
+                        data byte 2 is preset number (0x01, 0x02, … 0x06)
             
-                0x0D — "m" @todo
+                    0x0D — "m" @todo
                 
-                0x0E — INF (press?) @todo
-                0x0F — INF (press and hold?) @todo
-                    may need to ack 0x0E before we get 0x0F
+                    0x0E — INF (press?) @todo
+                    0x0F — INF (press and hold?) @todo
+                        may need to ack 0x0E before we get 0x0F
             
-                0x14 — SAT pressed and held
-                0x15 — SAT pressed
+                    0x14 — SAT pressed and held
+                    0x15 — SAT pressed
 
 Messages we send:
     src: 0x73 (satellite radio)

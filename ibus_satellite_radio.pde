@@ -19,6 +19,23 @@
 #define PKT_DEST 2
 #define PKT_CMD  3
 
+// SDRS commands
+#define SDRS_CMD_POWER          0x00 // power
+#define SDRS_CMD_MODE           0x01 // mode
+#define SDRS_CMD_NOW            0x02 // "now"
+#define SDRS_CMD_CHAN_UP        0x03 // channel up
+#define SDRS_CMD_CHAN_DOWN      0x04 // channel down
+#define SDRS_CMD_CHAN_UP_HOLD   0x05 // channel up and hold
+#define SDRS_CMD_CHAN_DOWN_HOLD 0x06 // channel down and hold
+#define SDRS_CMD_PRESET         0x08 // preset selected
+#define SDRS_CMD_PRESET_HOLD    0x09 // preset held
+#define SDRS_CMD_M              0x0D // "m"
+#define SDRS_CMD_INF            0x0E // INF press
+#define SDRS_CMD_INF_HOLD       0x0F // INF press and hold
+#define SDRS_CMD_SAT_HOLD       0x14 // SAT press and hold
+#define SDRS_CMD_SAT            0x15 // SAT press
+
+
 // number of times to retry sending messages if verification fails
 #define TX_RETRY_COUNT 2
 
@@ -206,12 +223,12 @@ void dispatch_packet(const uint8_t *packet) {
             // command sent that we must reply to
             
             switch(rx_buf[4]) {
-                case 0x00: // power
+                case SDRS_CMD_POWER:
                     DEBUG_PGM_PRINT("got power command, ");
                     DEBUG_PRINTLN(rx_buf[5], HEX);
                     // fall through
                 
-                case 0x01: // mode
+                case SDRS_CMD_MODE:
                     DEBUG_PGM_PRINT("got mode command, ");
                     DEBUG_PRINTLN(rx_buf[5], HEX);
                     
@@ -223,40 +240,28 @@ void dispatch_packet(const uint8_t *packet) {
                     send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 6);
                     break;
                     
-                case 0x03: // channel up
-                    DEBUG_PGM_PRINTLN("got channel up");
-                
-                case 0x04: // channel down
-                    DEBUG_PGM_PRINTLN("got channel down");
-                
-                case 0x05: // channel up and hold
-                    DEBUG_PGM_PRINTLN("got channel up and hold");
-                
-                case 0x06: // channel down and hold
-                    DEBUG_PGM_PRINTLN("got channel down and hold");
-                
-                case 0x08: // preset selected
-                    DEBUG_PGM_PRINTLN("got preset");
-                
-                case 0x09: // preset held
-                    DEBUG_PGM_PRINTLN("got preset hold");
-                    
+                case SDRS_CMD_CHAN_UP:
+                case SDRS_CMD_CHAN_DOWN:
+                case SDRS_CMD_CHAN_UP_HOLD:
+                case SDRS_CMD_CHAN_DOWN_HOLD:
+                case SDRS_CMD_PRESET:
+                case SDRS_CMD_PRESET_HOLD:
                     handle_buttons(rx_buf[4], rx_buf[5]);
                     
                     // a little something for the display
-                    data_buf = "\x3E\x01\x00..\x04Hi, there!";
+                    data_buf = "\x3E\x01\x00..\x04Hi there!";
                     data_buf[3] = satelliteState.channel;
                     data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
                     
                     DEBUG_PGM_PRINTLN("sending text after channel change");
-                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 16);
+                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 15);
                     
                     // fall through!
 
-                case 0x02: // "now"
+                case SDRS_CMD_NOW:
                     DEBUG_PGM_PRINTLN("got \"now\"");
                 
-                case 0x15: // SAT press
+                case SDRS_CMD_SAT:
                     DEBUG_PGM_PRINTLN("got sat press");
 
                     data_buf = "\x3E\x02\x00..\x04   !!   ";
@@ -265,17 +270,17 @@ void dispatch_packet(const uint8_t *packet) {
                     
                     send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 14);
                     
-                    if (rx_buf[4] == 0x02) {
+                    if (rx_buf[4] == SDRS_CMD_NOW) {
                         // a little something for the display
-                        data_buf = "\x3E\x01\x00..\x04Hi, there!";
+                        data_buf = "\x3E\x01\x00..\x04Hi there!";
                         data_buf[3] = satelliteState.channel;
                         data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
                         DEBUG_PGM_PRINTLN("sending text for \"now\"");
-                        send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 16);
+                        send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 15);
                     }
                     break;
                     
-                case 0x0E: // INF press
+                case SDRS_CMD_INF:
                     DEBUG_PGM_PRINTLN("got inf press");
                     
                     data_buf = "\x3E\x01\x06..\x01dummy1"; // this text actually shows! (kind of; chopped 1st char, garbled last)
@@ -285,7 +290,7 @@ void dispatch_packet(const uint8_t *packet) {
                     send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 12);
                     break;
                 
-                case 0x0F: // INF press and hold
+                case SDRS_CMD_INF_HOLD:
                     DEBUG_PGM_PRINTLN("got inf press and hold");
                 
                     data_buf = "\x3E\x01\x07.\x01\x01dummy2";
@@ -294,10 +299,10 @@ void dispatch_packet(const uint8_t *packet) {
                     send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 12);
                     break;
                 
-                case 0x0D: // "m"
+                case SDRS_CMD_M:
                     DEBUG_PGM_PRINTLN("[UNHANDLED] got \"m\"");
                 
-                case 0x14: // SAT press and hold
+                case SDRS_CMD_SAT_HOLD:
                     // this actually looks like RAD requesting the ESN
                     DEBUG_PGM_PRINTLN("[UNHANDLED] got sat press and hold");
                 
