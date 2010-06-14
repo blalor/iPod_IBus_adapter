@@ -2,9 +2,8 @@
 #include <string.h>
 #include "MyHardwareSerial.h"
 
-#include "pgm_util.h"
-
 #define DEBUG 1
+#include "pgm_util.h"
 
 // pin mappings
 #define CONSOLE_RX_PIN 2
@@ -20,11 +19,21 @@
 #define PKT_DEST 2
 #define PKT_CMD  3
 
-#define TX_BUF_LEN 30
-#define RX_BUF_LEN 128
+// number of times to retry sending messages if verification fails
+#define TX_RETRY_COUNT 2
 
-uint8_t tx_buf[TX_BUF_LEN + 1];
-uint8_t rx_buf[RX_BUF_LEN + 1];
+#define TX_BUF_LEN 30
+
+// buffer for building outgoing packets
+uint8_t tx_buf[TX_BUF_LEN];
+uint8_t tx_ind;
+
+// flag indicating that we're already in the process of sending data; helps to
+// queue outgoing messages
+boolean tx_active;
+
+// buffer for processing incoming packets; same size as serial buffer
+uint8_t rx_buf[RX_BUFFER_SIZE];
 uint8_t rx_ind;
 
 typedef struct __sat_state {
@@ -35,6 +44,8 @@ typedef struct __sat_state {
 } SatState;
 
 SatState satelliteState = {1, 1, 1, false};
+
+// timestamp of last poll from radio
 unsigned long lastPoll;
 
 // length of data in IBus packet
@@ -52,7 +63,8 @@ int calculated_chksum;
 NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
 
-// this'll give me flexibility to swap between soft- and hard-ware serial while developing
+// this'll give me flexibility to swap between soft- and hard-ware serial 
+// while developing
 Print *console = 
     #if DEBUG
         &nssConsole
@@ -61,6 +73,7 @@ Print *console =
     #endif
 ;
 
+// {{{ setup
 void setup() {
     #if DEBUG
         nssConsole.begin(9600);
@@ -74,7 +87,9 @@ void setup() {
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
 }
+// }}}
 
+// {{{ loop
 void loop() {
     /*
     The serial reading is pretty naive. If we start reading in the middle of
@@ -87,6 +102,14 @@ void loop() {
         DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
         send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
     }
+    
+    process_incoming_data();
+}
+// }}}
+
+// {{{ process_incoming_data
+boolean process_incoming_data() {
+    boolean found_message = false;
     
     // need at least two bytes to a packet, src and length
     if (MySerial.available() > 2) {
@@ -130,6 +153,8 @@ void loop() {
 
                     // DEBUG_PGM_PRINT("packet from ");
                     // DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
+                    
+                    dispatch_packet(rx_buf);
                 }
                 else {
                     // invalid checksum; drop first byte in buffer and try again
@@ -138,8 +163,12 @@ void loop() {
             } // if (MySerial.available() …)
         }
     } // if (MySerial.available()  > 2)
+    
+    return found_message;
 }
+// }}}
 
+// {{{ dispatch_packet
 void dispatch_packet(const uint8_t *packet) {
     char *data_buf;
     
@@ -279,7 +308,9 @@ void dispatch_packet(const uint8_t *packet) {
         }
     }
 }
+// }}}
 
+// {{{ handle_buttons
 void handle_buttons(uint8_t button_id, uint8_t button_data) {
     switch(button_id) {
         case 0x03: // — channel up
@@ -305,65 +336,83 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
             break;
     }
 }
+// }}}
 
-// return true if successfully sent and verified packet
-boolean send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
+// {{{ send_packet
+// send and verify packet
+// may be recalled recursively:
+//      send_packet
+//          process_incoming_data
+//              send_packet
+// Data only gets transmitted by outermost loop
+void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
+    // flag indicating that this invocation should actually transmit the data
+    boolean do_tx = false;
+    
     // add space for dest and checksum bytes
     size_t packet_len = data_len + 2;
-    uint8_t tx_ind = 0;
-    
-    // copy all data into the tx buffer
-    tx_buf[tx_ind++] = src;
-    tx_buf[tx_ind++] = packet_len;
-    tx_buf[tx_ind++] = dest;
-    
-    for (size_t i = 0; i < data_len; i++) {
-        tx_buf[tx_ind++] = data[i];
-    }
-    
-    // calculate checksum, which goes into the last byte of the tx buffer
-    tx_buf[tx_ind++] = calc_checksum(tx_buf, tx_ind);
-    
-    boolean sent_successfully = false;
-    MySerial.write((uint8_t *)&tx_buf, tx_ind);
-    sent_successfully = true;
-    
-    // uint8_t retry_count = 0;
-    // while (! sent_successfully && (retry_count++ < 10)) {
-    //     MySerial.write((uint8_t *)&tx_buf, tx_ind);
-    // 
-    //     // @todo verify that our data appeared in the buffer, indicating that it was
-    //     // sent.  if there was a collision, our data got trampled
-    // 
-    //     // wait for data to show up
-    //     while (MySerial.available() < tx_ind);
-    // 
-    //     rx_ind = 0;
-    //     while (rx_ind < tx_ind) {
-    //         rx_buf[rx_ind++] = MySerial.read();
-    //     }
-    // 
-    //     // return true if the buffers are identical
-    //     sent_successfully = (memcmp((void *)&tx_buf, (void *)&rx_buf, tx_ind) == 0);
-    //     
-    //     if (! sent_successfully) {
-    //         DEBUG_PGM_PRINT("failed to send message; found: ");
-    //         
-    //         for (int i = 0; i < rx_ind; i++) {
-    //             DEBUG_PRINT(rx_buf[i], HEX);
-    //             DEBUG_PGM_PRINT(" ");
-    //         }
-    // 
-    //         DEBUG_PGM_PRINTLN(" ");
-    //         
-    //     } else {
-    //         DEBUG_PGM_PRINTLN("sent message successfully");
-    //     }
-    // }
-    
-    return sent_successfully;
-}
 
+    // ensure sufficient space in tx buffer
+    // add two more for src and packet_len bytes
+    if ((tx_ind + packet_len + 2) >= TX_BUF_LEN) {
+        DEBUG_PGM_PRINTLN("dropping message because TX buffer is full!");
+    }
+    else {
+        if (! tx_active) {
+            do_tx = true;
+            tx_active = true;
+        }
+        
+        uint8_t tmp_ind = tx_ind;
+        
+        // copy all data into the tx buffer
+        tx_buf[tx_ind++] = src;
+        tx_buf[tx_ind++] = packet_len;
+        tx_buf[tx_ind++] = dest;
+
+        for (size_t i = 0; i < data_len; i++) {
+            tx_buf[tx_ind++] = data[i];
+        }
+
+        // calculate checksum, which goes immediately after the last data byte
+        tx_buf[tx_ind++] = calc_checksum(&tx_buf[tmp_ind], tx_ind - tmp_ind);
+
+        if (do_tx) {
+            boolean sent_successfully = false;
+            uint8_t retry_count = 0;
+            
+            while ((! sent_successfully) && (retry_count++ < TX_RETRY_COUNT)) {
+                // force all pending data to be processed. could potentially spin
+                // for a while, if there's fewer than 3 bytes in the buffer 
+                // because process_incoming_data() won't do anything until then.
+                while (MySerial.available()) {
+                    process_incoming_data();
+                }
+                
+                MySerial.write(tx_buf, tx_ind);
+                
+                // wait for data to show up
+                while (MySerial.available() < tx_ind);
+                
+                boolean verification_failed = false;
+                for (int i = 0; (i < tx_ind) && (! verification_failed); i++) {
+                    if (MySerial.peek(i) != tx_buf[i]) {
+                        verification_failed = true;
+                        DEBUG_PGM_PRINTLN("verification of sent data failed");
+                    }
+                }
+                
+                sent_successfully = (! verification_failed);
+            }
+            
+            tx_ind = 0;
+            tx_active = false;
+        } // if (do_tx)
+    }
+}
+// }}}
+
+// {{{ calc_checksum
 int calc_checksum(uint8_t *buf, uint8_t buf_len) {
     int checksum = 0;
     
@@ -373,3 +422,4 @@ int calc_checksum(uint8_t *buf, uint8_t buf_len) {
     
     return checksum;
 }
+// }}}
