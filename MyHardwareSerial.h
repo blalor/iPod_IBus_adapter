@@ -28,6 +28,8 @@
 
 #include "Print.h"
 
+#define RX_BUFFER_SIZE 128
+
 struct ring_buffer;
 
 class MyHardwareSerial : public Print
