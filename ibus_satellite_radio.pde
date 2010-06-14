@@ -1,91 +1,7 @@
 #include <avr/pgmspace.h>
 #include <NewSoftSerial.h>
 #include <string.h>
-
-/*
-The structure of an Ibus packet is the folllowing :
- -	Source Device ID The device which needs to send a message to another device
- -	Length The length of the packet whithout Source ID and length it-self.
- -	Destination Device ID The device which must receive the message
- -	Data The message to send to Destination ID
- -	XOR CheckSum This byte is used to check the integrity of the message. 
-         The receiver will compare that value with its own computation, and
-         if not equal, will reject the packet.
-*/
-
-/*
-Messages we understand:
-    src: 0x68 (radio)
-        dest: 0x73 (satellite radio)
-    
-        cmd: 0x01 — "are you there" from radio; sent every 10s or so
-    
-        cmd: 0x3D
-            data byte 1:
-                0x00 — power @todo
-                0x01 — mode @todo
-                0x02 — now @todo
-                0x03 — channel up
-                0x04 — channel down
-                0x05 — channel up and hold
-                0x06 — channel down and hold
-            
-                0x08 — preset button pressed
-                0x09 — preset button press and hold
-                    data byte 2 is preset number (0x01, 0x02, … 0x06)
-            
-                0x0D — "m" @todo
-                
-                0x0E — INF (press?) @todo
-                0x0F — INF (press and hold?) @todo
-                    may need to ack 0x0E before we get 0x0F
-            
-                0x14 — SAT pressed and held
-                0x15 — SAT pressed
-
-Messages we send:
-    src: 0x73 (satellite radio)
-        dest: 0xFF (broadcast)
-            data: 0x02 0x00 — poll response (sent for "are you there" from radio)
-            data: 0x02 0x01 — announcement when bus activates
-    
-        dest: 0x68
-            data byte 1: 0x3E
-                all follow format
-                    0x3E xx yy CC BP zz .. .. .. ..
-                where:
-                    xx yy — sub-command bytes
-                    CC    — channel
-                    B     — band nibble
-                    P     — preset nibble (0-6)
-                    zz    — command end byte (no idea, really)
-                    ..    — text
-                
-                0x00 0x00 CC BP 04
-                    response to power, mode
-                
-                // what is the 2nd byte? 0x00, 0x06, 0x07
-                0x01 0x00 CC BP 04 ..
-                    send text to show on head unit
-                    limit of 8 or 9 characters. does not need to be refreshed
-                    until it changes (I think)
-                
-                0x01 0x06 CC 01 01 ..
-                    ack INF press. note diff't end byte, band 0, preset 1
-                
-                0x01 0x07 CC 01 01 ..
-                    ack INF2 press. note diff't end byte, band 0, preset 1
-                
-                0x02 0x00 CC BP 04 '        '
-                    response to channel up/down, "what now", preset and sat
-                    button presses; text sent is 8 spaces
-
-Button presses and interactions that cause ACQUIRING to (re)appear
-    • pressing SAT
-
-Other observances:
-    • holding "M" seems to force a "now" command, but a single press of "M" does nothing
-*/
+#include "MyHardwareSerial.h"
 
 #define DEBUG 1
 
@@ -138,6 +54,7 @@ typedef struct __sat_state {
 } SatState;
 
 SatState satelliteState = {1, 1, 1, false};
+unsigned long lastPoll;
 
 #if DEBUG
 NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
@@ -158,8 +75,8 @@ void setup() {
     #endif
     
     // set up serial for IBus; 9600,8,E,1
-    Serial.begin(9600);
-    UCSR0C = UCSR0C | B00100000; // even parity
+    MySerial.begin(9600);
+    UCSR0C |= UPM01; // even parity
     
     memset((void *)&rx_buf, '\0', (sizeof(char) * (RX_BUF_LEN + 1)));
 
@@ -176,12 +93,17 @@ void loop() {
     eventually synchronize with the stream during a lull in the conversation,
     where all available and "invalid" data will have been consumed.
     */
-    if (Serial.available() > 2) {
+    if ((lastPoll + 20000L) < millis()) {
+        DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
+        while(true);
+    }
+    
+    if (MySerial.available() > 2) {
         memset((void *)&rx_buf, '\0', (sizeof(char) * (RX_BUF_LEN + 1)));
         rx_ind = 0;
         
-        rx_buf[rx_ind++] = Serial.read(); // source
-        rx_buf[rx_ind++] = Serial.read(); // the length
+        rx_buf[rx_ind++] = MySerial.read(); // source
+        rx_buf[rx_ind++] = MySerial.read(); // the length
         
         // DEBUG_PGM_PRINT("packet from ");
         // DEBUG_PRINT(rx_buf[PKT_SRC], HEX);
@@ -192,7 +114,7 @@ void loop() {
         // ensure we don't overflow the buffer.
         int tmp;
         while ((rx_ind < (rx_buf[PKT_LEN] + 2)) && (rx_ind <= RX_BUF_LEN)) {
-            tmp = Serial.read();
+            tmp = MySerial.read();
             if (tmp == -1) {
                 // no data
                 continue;
@@ -202,7 +124,7 @@ void loop() {
         }
         
         // flush any remaining data
-        // Serial.flush();
+        // MySerial.flush();
         
         // verify the checksum
         uint8_t provided_chksum = rx_buf[rx_ind];
@@ -256,6 +178,8 @@ void dispatch_packet(const uint8_t *packet) {
         // check the command byte
         if (rx_buf[PKT_CMD] == 0x01) {
             // handle poll request
+            lastPoll = millis();
+            
             DEBUG_PGM_PRINTLN("responding to poll request");
             send_packet(SDRS_ADDR, 0xFF, "\x02\x00", 2);
         }
@@ -421,18 +345,17 @@ boolean send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len
     boolean sent_successfully = false;
     uint8_t retry_count = 0;
     while (! sent_successfully && (retry_count++ < 10)) {
-        Serial.flush();
-        Serial.write((uint8_t *)&tx_buf, tx_ind);
+        MySerial.write((uint8_t *)&tx_buf, tx_ind);
 
         // @todo verify that our data appeared in the buffer, indicating that it was
         // sent.  if there was a collision, our data got trampled
 
         // wait for data to show up
-        while (Serial.available() < tx_ind);
+        while (MySerial.available() < tx_ind);
 
         rx_ind = 0;
         while (rx_ind < tx_ind) {
-            rx_buf[rx_ind++] = Serial.read();
+            rx_buf[rx_ind++] = MySerial.read();
         }
 
         // return true if the buffers are identical
