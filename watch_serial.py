@@ -12,7 +12,7 @@ import os
 import serial
 
 def main():
-    ser = serial.Serial(port = sys.argv[1], baudrate = 9600, timeout = 0.25)
+    ser = serial.Serial(port = sys.argv[1], baudrate = 115200, timeout = 0.25)
     
     # found_data = False
     # while True:

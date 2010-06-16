@@ -1,0 +1,76 @@
+--- HardwareSerial.cpp.bak	2010-06-14 21:54:04.000000000 -0400
++++ HardwareSerial.cpp	2010-06-14 21:56:14.000000000 -0400
+@@ -1,4 +1,8 @@
+ /*
++  Stolen from Arduino 0018.
++  HardwareSerial.cpp — extension of hardware serial library with peek() and
++  remove() operations.
++  
+   HardwareSerial.cpp - Hardware serial library for Wiring
+   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
+ 
+@@ -31,7 +35,6 @@
+ // using a ring buffer (I think), in which rx_buffer_head is the index of the
+ // location to which to write the next incoming character and rx_buffer_tail
+ // is the index of the location from which to read.
+-#define RX_BUFFER_SIZE 128
+ 
+ struct ring_buffer {
+   unsigned char buffer[RX_BUFFER_SIZE];
+@@ -189,6 +192,27 @@
+   }
+ }
+ 
++/**
++    Returns the char at the offset into the buffer, without moving the tail
++    forward.
++**/
++int HardwareSerial::peek(uint8_t offset) {
++    if (_rx_buffer->head == _rx_buffer->tail) {
++        return -1;
++    } else {
++        return _rx_buffer->buffer[(_rx_buffer->tail + offset) % RX_BUFFER_SIZE];
++    }
++}
++
++/**
++    Removes offset number of bytes from the buffer.
++**/
++void HardwareSerial::remove(uint8_t offset) {
++    if (_rx_buffer->head != _rx_buffer->tail) {
++        _rx_buffer->tail = (_rx_buffer->tail + offset) % RX_BUFFER_SIZE;
++    }
++}
++
+ void HardwareSerial::flush()
+ {
+   // don't reverse this or there may be problems if the RX interrupt
+--- HardwareSerial.h.bak	2010-06-14 21:54:10.000000000 -0400
++++ HardwareSerial.h	2010-06-14 21:56:23.000000000 -0400
+@@ -1,4 +1,8 @@
+ /*
++  Stolen from Arduino 0018.
++  HardwareSerial.cpp — extension of hardware serial library with peek() and
++  remove() operations.
++  
+   HardwareSerial.h - Hardware serial library for Wiring
+   Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
+ 
+@@ -24,6 +28,8 @@
+ 
+ #include "Print.h"
+ 
++#define RX_BUFFER_SIZE 128
++
+ struct ring_buffer;
+ 
+ class HardwareSerial : public Print
+@@ -50,6 +56,8 @@
+     void end();
+     uint8_t available(void);
+     int read(void);
++    int peek(uint8_t);
++    void remove(uint8_t);
+     void flush(void);
+     virtual void write(uint8_t);
+     using Print::write; // pull in write(str) and write(buf, size) from Print

@@ -1,13 +1,19 @@
-#include <NewSoftSerial.h>
-#include <string.h>
-#include "MyHardwareSerial.h"
-
 #define DEBUG 1
+#define DEBUG_PACKET_PARSING 0
+
+#if DEBUG
+    #include <NewSoftSerial.h>
+#endif
+
+#include <string.h>
+#include "HardwareSerial.h"
+
 #include "pgm_util.h"
 
 // pin mappings
-#define CONSOLE_RX_PIN 2
-#define CONSOLE_TX_PIN 3
+#define CONSOLE_RX_PIN  2
+#define CONSOLE_TX_PIN  3
+#define LED_PIN        13
 
 // addresses of IBus devices
 #define RAD_ADDR  0x68
@@ -18,6 +24,12 @@
 #define PKT_LEN  1
 #define PKT_DEST 2
 #define PKT_CMD  3
+
+// there may well be a protocol-imposed limit to the max value of a length
+// byte in a packet, but it looks like this is the biggest we'll see in
+// practice.  Use this as a sort of heuristic to determine if the incoming
+// data is valid.
+#define MAX_EXPECTED_LEN 10
 
 // SDRS commands
 #define SDRS_CMD_POWER          0x00 // power
@@ -30,8 +42,8 @@
 #define SDRS_CMD_PRESET         0x08 // preset selected
 #define SDRS_CMD_PRESET_HOLD    0x09 // preset held
 #define SDRS_CMD_M              0x0D // "m"
-#define SDRS_CMD_INF            0x0E // INF press
-#define SDRS_CMD_INF_HOLD       0x0F // INF press and hold
+#define SDRS_CMD_INF1           0x0E // INF 1st press
+#define SDRS_CMD_INF2           0x0F // INF 2nd press
 #define SDRS_CMD_SAT_HOLD       0x14 // SAT press and hold
 #define SDRS_CMD_SAT            0x15 // SAT press
 
@@ -39,10 +51,13 @@
 // number of times to retry sending messages if verification fails
 #define TX_RETRY_COUNT 2
 
-#define TX_BUF_LEN 30
+#define TX_BUF_LEN 128
+
+#define TX_DELAY_MARKER -1
 
 // buffer for building outgoing packets
-uint8_t tx_buf[TX_BUF_LEN];
+// int because we need a marker in between messages to delay activity on the bus briefly
+int tx_buf[TX_BUF_LEN];
 uint8_t tx_ind;
 
 // flag indicating that we're already in the process of sending data; helps to
@@ -60,10 +75,16 @@ typedef struct __sat_state {
     boolean active; // whether we're playing or not
 } SatState;
 
-SatState satelliteState = {1, 1, 1, false};
+SatState satelliteState = {1, 1, 0, false};
 
 // timestamp of last poll from radio
 unsigned long lastPoll;
+
+// trigger time to turn off LED
+unsigned long ledOffTime;
+
+// timeout duration before giving up on a read
+unsigned long readTimeout;
 
 // length of data in IBus packet
 uint8_t data_len;
@@ -77,7 +98,7 @@ uint8_t chksum_ind;
 int calculated_chksum;
 
 #if DEBUG
-NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
+    NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
 
 // this'll give me flexibility to swap between soft- and hard-ware serial 
@@ -93,21 +114,34 @@ Print *console =
 // {{{ setup
 void setup() {
     #if DEBUG
-        nssConsole.begin(9600);
+        nssConsole.begin(115200);
     #endif
     
     // set up serial for IBus; 9600,8,E,1
-    UCSR0C |= UPM01; // even parity
-    MySerial.begin(9600);
+    Serial.begin(9600);
+    UCSR0C |= _BV(UPM01); // even parity
+    
+    pinMode(LED_PIN, OUTPUT);
     
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
+    
+    for (int i = 0; i < 3; i++) {
+        digitalWrite(LED_PIN, HIGH);
+        delay(250);
+        digitalWrite(LED_PIN, LOW);
+        delay(250);
+    }
 }
 // }}}
 
 // {{{ loop
 void loop() {
+    if (millis() > ledOffTime) {
+        digitalWrite(LED_PIN, LOW);
+    }
+    
     /*
     The serial reading is pretty naive. If we start reading in the middle of
     a packet transmission, the checksum validation will fail. All data
@@ -118,6 +152,7 @@ void loop() {
     if ((lastPoll + 20000L) < millis()) {
         DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
         send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
+        lastPoll = millis();
     }
     
     process_incoming_data();
@@ -125,17 +160,49 @@ void loop() {
 // }}}
 
 // {{{ process_incoming_data
-boolean process_incoming_data() {
+void process_incoming_data() {
     boolean found_message = false;
     
+    uint8_t bytes_availble = Serial.available();
+    
+    #if DEBUG_PACKET_PARSING
+        if (bytes_availble) {
+            DEBUG_PGM_PRINT("[pkt] buf contents: ");
+            for (int i = 0; i < bytes_availble; i++) {
+                DEBUG_PRINT(Serial.peek(i), HEX);
+                DEBUG_PGM_PRINT(" ");
+            }
+            DEBUG_PGM_PRINTLN(" ");
+        }
+    #endif
+    
     // need at least two bytes to a packet, src and length
-    if (MySerial.available() > 2) {
+   if (bytes_availble > 2) {
         // length of the data
-        data_len = MySerial.peek(1);
+        data_len = Serial.peek(PKT_LEN);
+
+        #if DEBUG_PACKET_PARSING
+            DEBUG_PGM_PRINT("[pkt] have ");
+            DEBUG_PRINT(bytes_availble, DEC);
+            DEBUG_PGM_PRINTLN(" bytes available");
         
-        if (data_len >= RX_BUFFER_SIZE) {
-            DEBUG_PGM_PRINTLN("packet too big for RX buffer");
-            MySerial.remove(0);
+            DEBUG_PGM_PRINT("[pkt] packet length is ");
+            DEBUG_PRINTLN(data_len, DEC);
+        #endif
+        
+        if (
+            (data_len == 0)                || // length cannot be zero
+            (data_len >= MAX_EXPECTED_LEN) || // we don't handle messages larger than this
+            (data_len >= RX_BUFFER_SIZE)      // hard limit to how much data we can buffer
+        ) {
+            DEBUG_PGM_PRINTLN("invalid packet length");
+            
+            #if DEBUG_PACKET_PARSING
+                     if (data_len == 0) DEBUG_PGM_PRINTLN("length cannot be zero");
+                else if (data_len >= MAX_EXPECTED_LEN) DEBUG_PGM_PRINTLN("we don't handle messages larger than this");
+                else if (data_len >= RX_BUFFER_SIZE) DEBUG_PGM_PRINTLN("hard limit to how much data we can buffer");
+            #endif
+            Serial.remove(1);
         }
         else {
             // length of entire packet including source and length
@@ -143,30 +210,50 @@ boolean process_incoming_data() {
 
             // index of the checksum byte
             chksum_ind = pkt_len - 1;
+            
+            #if DEBUG_PACKET_PARSING
+                DEBUG_PGM_PRINT("[pkt] checksum at index ");
+                DEBUG_PRINT(chksum_ind, DEC);
+                DEBUG_PGM_PRINT(": ");
+                DEBUG_PRINTLN(Serial.peek(chksum_ind), HEX);
+
+                DEBUG_PGM_PRINT("[pkt] need at least ");
+                DEBUG_PRINT(pkt_len, DEC);
+                DEBUG_PGM_PRINTLN(" bytes for complete packet");
+            #endif
 
             // ensure we've got enough data in the buffer to comprise a complete 
             // packet
-            if (MySerial.available() >= pkt_len) {
+            if (bytes_availble >= pkt_len) {
                 // yep, have enough data
+                readTimeout = 0;
 
                 // verify the checksum
                 calculated_chksum = 0;
                 for (int i = 0; i < chksum_ind; i++) {
-                    calculated_chksum ^= MySerial.peek(i);
+                    calculated_chksum ^= Serial.peek(i);
                 }
 
-                if (calculated_chksum == MySerial.peek(chksum_ind)) {
+                if (calculated_chksum == Serial.peek(chksum_ind)) {
                     // valid checksum
+
+                    #if DEBUG_PACKET_PARSING
+                        DEBUG_PGM_PRINT("[pkt] received ");
+                    #endif
 
                     // read packet into buffer and dispatch
                     for (int i = 0; i < pkt_len; i++) {
-                        rx_buf[i] = MySerial.read();
+                        rx_buf[i] = Serial.read();
 
-                        DEBUG_PRINT(rx_buf[i], HEX);
-                        DEBUG_PGM_PRINT(" ");
+                        #if DEBUG_PACKET_PARSING
+                            DEBUG_PRINT(rx_buf[i], HEX);
+                            DEBUG_PGM_PRINT(" ");
+                        #endif
                     }
 
-                    DEBUG_PGM_PRINTLN(" ");
+                    #if DEBUG_PACKET_PARSING
+                        DEBUG_PGM_PRINTLN(" ");
+                    #endif
 
                     // DEBUG_PGM_PRINT("packet from ");
                     // DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
@@ -175,13 +262,28 @@ boolean process_incoming_data() {
                 }
                 else {
                     // invalid checksum; drop first byte in buffer and try again
-                    MySerial.remove(0);
+                    DEBUG_PGM_PRINTLN("invalid checksum");
+                    Serial.remove(1);
                 }
-            } // if (MySerial.available() …)
+            } // if (bytes_availble …)
+            else {
+                // provide a timeout mechanism; expire if needed bytes 
+                // haven't shown up in the expected time.
+                
+                if (readTimeout == 0) {
+                    // 0.83ms/byte
+                    readTimeout = ((83 * (pkt_len - bytes_availble)) / 100);
+                    DEBUG_PGM_PRINT("read timeout: ");
+                    DEBUG_PRINTLN(readTimeout, DEC);
+                    readTimeout += millis();
+                } else if (millis() > readTimeout) {
+                    DEBUG_PGM_PRINTLN("dropping packet due to read timeout");
+                    readTimeout = 0;
+                    Serial.remove(1);
+                }
+            }
         }
-    } // if (MySerial.available()  > 2)
-    
-    return found_message;
+    } // if (bytes_availble  >= 2)
 }
 // }}}
 
@@ -224,11 +326,17 @@ void dispatch_packet(const uint8_t *packet) {
             
             switch(rx_buf[4]) {
                 case SDRS_CMD_POWER:
+                    // this is sometimes sent by the radio immediately after our initial
+                    // announcemnt if the ignition is off (ACC isn't hot). Perhaps only after the
+                    // IBus is first initialized.  Either way, it seems to indicate that the
+                    // radio's off and we shouldn't be doing anything.
                     DEBUG_PGM_PRINT("got power command, ");
                     DEBUG_PRINTLN(rx_buf[5], HEX);
                     // fall through
                 
                 case SDRS_CMD_MODE:
+                    // sent when the mode on the radio is changed away from SIRIUS, and when the
+                    // radio is turned off while SIRIUS is active.
                     DEBUG_PGM_PRINT("got mode command, ");
                     DEBUG_PRINTLN(rx_buf[5], HEX);
                     
@@ -259,6 +367,9 @@ void dispatch_packet(const uint8_t *packet) {
                     // fall through!
 
                 case SDRS_CMD_NOW:
+                    // this is the command received when the mode is changed on the radio to
+                    // select SIRIUS.  It is also sent periodically if we don't respond quickly
+                    // enough with an updated display command (3D 01 00 …)
                     DEBUG_PGM_PRINTLN("got \"now\"");
                 
                 case SDRS_CMD_SAT:
@@ -280,8 +391,8 @@ void dispatch_packet(const uint8_t *packet) {
                     }
                     break;
                     
-                case SDRS_CMD_INF:
-                    DEBUG_PGM_PRINTLN("got inf press");
+                case SDRS_CMD_INF1:
+                    DEBUG_PGM_PRINTLN("got first inf press");
                     
                     data_buf = "\x3E\x01\x06..\x01dummy1"; // this text actually shows! (kind of; chopped 1st char, garbled last)
                     data_buf[3] = satelliteState.channel;
@@ -290,8 +401,8 @@ void dispatch_packet(const uint8_t *packet) {
                     send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 12);
                     break;
                 
-                case SDRS_CMD_INF_HOLD:
-                    DEBUG_PGM_PRINTLN("got inf press and hold");
+                case SDRS_CMD_INF2:
+                    DEBUG_PGM_PRINTLN("got second inf press");
                 
                     data_buf = "\x3E\x01\x07.\x01\x01dummy2";
                     data_buf[3] = satelliteState.channel;
@@ -361,11 +472,29 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
     // add two more for src and packet_len bytes
     if ((tx_ind + packet_len + 2) >= TX_BUF_LEN) {
         DEBUG_PGM_PRINTLN("dropping message because TX buffer is full!");
+        #if DEBUG
+            DEBUG_PGM_PRINT("src: ");
+            DEBUG_PRINT(src, HEX);
+            DEBUG_PGM_PRINT(", dest: ");
+            DEBUG_PRINT(dest, HEX);
+            DEBUG_PGM_PRINT(", data: ");
+            for (int i = 0; i < data_len; i++) {
+                DEBUG_PRINT((uint8_t) data[i], HEX);
+                DEBUG_PGM_PRINT(" ");
+            }
+            DEBUG_PGM_PRINTLN("");
+        #endif
     }
     else {
         if (! tx_active) {
             do_tx = true;
             tx_active = true;
+        }
+        
+        if (! do_tx) {
+            DEBUG_PGM_PRINTLN("re-entered send_packet()");
+            // insert delay marker between outgoing messages
+            tx_buf[tx_ind++] = TX_DELAY_MARKER;
         }
         
         uint8_t tmp_ind = tx_ind;
@@ -390,24 +519,60 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
                 // force all pending data to be processed. could potentially spin
                 // for a while, if there's fewer than 3 bytes in the buffer 
                 // because process_incoming_data() won't do anything until then.
-                while (MySerial.available()) {
+                while (Serial.available()) {
+                    DEBUG_PGM_PRINTLN("forcing process_incoming_data() while sending");
                     process_incoming_data();
                 }
                 
-                MySerial.write(tx_buf, tx_ind);
+                digitalWrite(LED_PIN, HIGH);
+                ledOffTime = millis() + 500L;
+                
+                uint8_t sent_count = 0;
+                for (int i = 0; i < tx_ind; i++) {
+                    if (tx_buf[i] == TX_DELAY_MARKER) {
+                        DEBUG_PGM_PRINTLN(" pause marker found");
+                        delay(1); // delay 1ms
+                    }
+                    else {
+                        #if DEBUG_PACKET_PARSING
+                            DEBUG_PRINT((uint8_t) tx_buf[i], HEX);
+                            DEBUG_PGM_PRINT(" ");
+                        #endif
+                        
+                        Serial.write((uint8_t) tx_buf[i]);
+                        sent_count++;
+                    }
+                }
+                
+                #if DEBUG_PACKET_PARSING
+                    DEBUG_PGM_PRINTLN("done sending");
+                #endif
                 
                 // wait for data to show up
-                while (MySerial.available() < tx_ind);
+                while (Serial.available() < sent_count);
                 
                 boolean verification_failed = false;
+                uint8_t rx_data_ind = 0;
                 for (int i = 0; (i < tx_ind) && (! verification_failed); i++) {
-                    if (MySerial.peek(i) != tx_buf[i]) {
+                    if (tx_buf[i] == TX_DELAY_MARKER) {
+                        // delay marker
+                        continue;
+                    }
+                    
+                    if (Serial.peek(rx_data_ind++) != tx_buf[i]) {
                         verification_failed = true;
-                        DEBUG_PGM_PRINTLN("verification of sent data failed");
                     }
                 }
                 
                 sent_successfully = (! verification_failed);
+                
+                if (! verification_failed) {
+                    Serial.remove(sent_count);
+                    DEBUG_PGM_PRINTLN("verification of sent data succeeded");
+                }
+                else {
+                    DEBUG_PGM_PRINTLN("verification of sent data failed");
+                }
             }
             
             tx_ind = 0;
@@ -418,7 +583,7 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
 // }}}
 
 // {{{ calc_checksum
-int calc_checksum(uint8_t *buf, uint8_t buf_len) {
+int calc_checksum(int *buf, uint8_t buf_len) {
     int checksum = 0;
     
     for (size_t i = 0; i < buf_len; i++) {

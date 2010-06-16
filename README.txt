@@ -1,3 +1,4 @@
+http://docs.hp.com/en/B3901-90007/ch05s09.html
 http://www.nongnu.org/avr-libc/user-manual/group__util__setbaud.html
 http://en.wikipedia.org/wiki/Circular_buffer
 http://en.wikipedia.org/wiki/Operators_in_C_and_C%2B%2B
