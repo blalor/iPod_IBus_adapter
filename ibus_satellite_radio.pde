@@ -1,14 +1,21 @@
 #define DEBUG 1
-#define DEBUG_PACKET_PARSING 0
+#define DEBUG_PACKET_PARSING 1
 
 #if DEBUG
     #include <NewSoftSerial.h>
 #endif
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "HardwareSerial.h"
 
 #include "pgm_util.h"
+
+#define IBUS_DATA_END_MARKER() "\xAA\xBB"
+#define ibus_data(_DATA) PSTR((_DATA IBUS_DATA_END_MARKER()))
+
+const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 
 // pin mappings
 #define CONSOLE_RX_PIN  2
@@ -24,12 +31,6 @@
 #define PKT_LEN  1
 #define PKT_DEST 2
 #define PKT_CMD  3
-
-// there may well be a protocol-imposed limit to the max value of a length
-// byte in a packet, but it looks like this is the biggest we'll see in
-// practice.  Use this as a sort of heuristic to determine if the incoming
-// data is valid.
-#define MAX_EXPECTED_LEN 10
 
 // SDRS commands
 #define SDRS_CMD_POWER          0x00 // power
@@ -47,16 +48,22 @@
 #define SDRS_CMD_SAT_HOLD       0x14 // SAT press and hold
 #define SDRS_CMD_SAT            0x15 // SAT press
 
-
 // number of times to retry sending messages if verification fails
 #define TX_RETRY_COUNT 2
 
-#define TX_BUF_LEN 128
+// there may well be a protocol-imposed limit to the max value of a length
+// byte in a packet, but it looks like this is the biggest we'll see in
+// practice.  Use this as a sort of heuristic to determine if the incoming
+// data is valid.
+#define MAX_EXPECTED_LEN 10
 
+#define TX_BUF_LEN 128
+#define RX_BUF_LEN (MAX_EXPECTED_LEN + 2)
 #define TX_DELAY_MARKER -1
 
 // buffer for building outgoing packets
-// int because we need a marker in between messages to delay activity on the bus briefly
+// int because we need a marker in between messages to delay activity on the
+// bus briefly
 int tx_buf[TX_BUF_LEN];
 uint8_t tx_ind;
 
@@ -65,7 +72,7 @@ uint8_t tx_ind;
 boolean tx_active;
 
 // buffer for processing incoming packets; same size as serial buffer
-uint8_t rx_buf[RX_BUFFER_SIZE];
+uint8_t rx_buf[RX_BUF_LEN];
 uint8_t rx_ind;
 
 typedef struct __sat_state {
@@ -86,20 +93,11 @@ unsigned long ledOffTime;
 // timeout duration before giving up on a read
 unsigned long readTimeout;
 
-// length of data in IBus packet
-uint8_t data_len;
-
-// length of entire packet including source and length
-uint8_t pkt_len;
-
-// index of the checksum byte
-uint8_t chksum_ind;
-
-int calculated_chksum;
-
 #if DEBUG
     NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
+
+char global_text_data[10];
 
 // this'll give me flexibility to swap between soft- and hard-ware serial 
 // while developing
@@ -125,7 +123,7 @@ void setup() {
     
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
-    send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
+    send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
     
     for (int i = 0; i < 3; i++) {
         digitalWrite(LED_PIN, HIGH);
@@ -151,7 +149,7 @@ void loop() {
     */
     if ((lastPoll + 20000L) < millis()) {
         DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
-        send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
+        send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
         lastPoll = millis();
     }
     
@@ -160,12 +158,12 @@ void loop() {
 // }}}
 
 // {{{ process_incoming_data
-void process_incoming_data() {
+boolean process_incoming_data() {
     boolean found_message = false;
     
     uint8_t bytes_availble = Serial.available();
     
-    #if DEBUG_PACKET_PARSING
+    #if DEBUG && DEBUG_PACKET_PARSING
         if (bytes_availble) {
             DEBUG_PGM_PRINT("[pkt] buf contents: ");
             for (int i = 0; i < bytes_availble; i++) {
@@ -179,9 +177,9 @@ void process_incoming_data() {
     // need at least two bytes to a packet, src and length
    if (bytes_availble > 2) {
         // length of the data
-        data_len = Serial.peek(PKT_LEN);
+        uint8_t data_len = Serial.peek(PKT_LEN);
 
-        #if DEBUG_PACKET_PARSING
+        #if DEBUG && DEBUG_PACKET_PARSING
             DEBUG_PGM_PRINT("[pkt] have ");
             DEBUG_PRINT(bytes_availble, DEC);
             DEBUG_PGM_PRINTLN(" bytes available");
@@ -197,7 +195,7 @@ void process_incoming_data() {
         ) {
             DEBUG_PGM_PRINTLN("invalid packet length");
             
-            #if DEBUG_PACKET_PARSING
+            #if DEBUG && DEBUG_PACKET_PARSING
                      if (data_len == 0) DEBUG_PGM_PRINTLN("length cannot be zero");
                 else if (data_len >= MAX_EXPECTED_LEN) DEBUG_PGM_PRINTLN("we don't handle messages larger than this");
                 else if (data_len >= RX_BUFFER_SIZE) DEBUG_PGM_PRINTLN("hard limit to how much data we can buffer");
@@ -206,12 +204,12 @@ void process_incoming_data() {
         }
         else {
             // length of entire packet including source and length
-            pkt_len = data_len + 2;
+            uint8_t pkt_len = data_len + 2;
 
             // index of the checksum byte
-            chksum_ind = pkt_len - 1;
+            uint8_t chksum_ind = pkt_len - 1;
             
-            #if DEBUG_PACKET_PARSING
+            #if DEBUG && DEBUG_PACKET_PARSING
                 DEBUG_PGM_PRINT("[pkt] checksum at index ");
                 DEBUG_PRINT(chksum_ind, DEC);
                 DEBUG_PGM_PRINT(": ");
@@ -222,22 +220,24 @@ void process_incoming_data() {
                 DEBUG_PGM_PRINTLN(" bytes for complete packet");
             #endif
 
-            // ensure we've got enough data in the buffer to comprise a complete 
-            // packet
+            // ensure we've got enough data in the buffer to comprise a
+            // complete packet
             if (bytes_availble >= pkt_len) {
                 // yep, have enough data
                 readTimeout = 0;
 
                 // verify the checksum
-                calculated_chksum = 0;
+                int calculated_chksum = 0;
                 for (int i = 0; i < chksum_ind; i++) {
                     calculated_chksum ^= Serial.peek(i);
                 }
 
                 if (calculated_chksum == Serial.peek(chksum_ind)) {
+                    found_message = true;
+                    
                     // valid checksum
 
-                    #if DEBUG_PACKET_PARSING
+                    #if DEBUG && DEBUG_PACKET_PARSING
                         DEBUG_PGM_PRINT("[pkt] received ");
                     #endif
 
@@ -245,13 +245,13 @@ void process_incoming_data() {
                     for (int i = 0; i < pkt_len; i++) {
                         rx_buf[i] = Serial.read();
 
-                        #if DEBUG_PACKET_PARSING
+                        #if DEBUG && DEBUG_PACKET_PARSING
                             DEBUG_PRINT(rx_buf[i], HEX);
                             DEBUG_PGM_PRINT(" ");
                         #endif
                     }
 
-                    #if DEBUG_PACKET_PARSING
+                    #if DEBUG && DEBUG_PACKET_PARSING
                         DEBUG_PGM_PRINTLN(" ");
                     #endif
 
@@ -261,7 +261,8 @@ void process_incoming_data() {
                     dispatch_packet(rx_buf);
                 }
                 else {
-                    // invalid checksum; drop first byte in buffer and try again
+                    // invalid checksum; drop first byte in buffer and try
+                    // again
                     DEBUG_PGM_PRINTLN("invalid checksum");
                     Serial.remove(1);
                 }
@@ -284,13 +285,13 @@ void process_incoming_data() {
             }
         }
     } // if (bytes_availble  >= 2)
+    
+    return found_message;
 }
 // }}}
 
 // {{{ dispatch_packet
 void dispatch_packet(const uint8_t *packet) {
-    char *data_buf;
-    
     // determine if the packet is from the radio and addressed to us, or if there
     // are any other packets we should use as a trigger.
     // DEBUG_PGM_PRINT("got packet from ");
@@ -309,7 +310,7 @@ void dispatch_packet(const uint8_t *packet) {
             DEBUG_PGM_PRINTLN("sending SDRS announcement because radio sent device status ready");
             
             // send SDRS announcement
-            send_packet(SDRS_ADDR, 0xFF, "\x02\x01", 2);
+            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
         }
     }
     else if ((rx_buf[PKT_SRC] == RAD_ADDR) && (rx_buf[PKT_DEST] == SDRS_ADDR)) {
@@ -319,33 +320,35 @@ void dispatch_packet(const uint8_t *packet) {
             lastPoll = millis();
             
             DEBUG_PGM_PRINTLN("responding to poll request");
-            send_packet(SDRS_ADDR, 0xFF, "\x02\x00", 2);
+            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x00"), NULL, false);
         }
         else if (rx_buf[PKT_CMD] == 0x3D) {
             // command sent that we must reply to
             
             switch(rx_buf[4]) {
                 case SDRS_CMD_POWER:
-                    // this is sometimes sent by the radio immediately after our initial
-                    // announcemnt if the ignition is off (ACC isn't hot). Perhaps only after the
-                    // IBus is first initialized.  Either way, it seems to indicate that the
+                    // this is sometimes sent by the radio immediately after
+                    // our initial announcemnt if the ignition is off (ACC
+                    // isn't hot). Perhaps only after the IBus is first
+                    // initialized.  Either way, it seems to indicate that the
                     // radio's off and we shouldn't be doing anything.
                     DEBUG_PGM_PRINT("got power command, ");
                     DEBUG_PRINTLN(rx_buf[5], HEX);
                     // fall through
                 
                 case SDRS_CMD_MODE:
-                    // sent when the mode on the radio is changed away from SIRIUS, and when the
-                    // radio is turned off while SIRIUS is active.
+                    // sent when the mode on the radio is changed away from
+                    // SIRIUS, and when the radio is turned off while SIRIUS
+                    // is active.
                     DEBUG_PGM_PRINT("got mode command, ");
                     DEBUG_PRINTLN(rx_buf[5], HEX);
                     
-                    data_buf = "\x3E\x00\x00..\x04";
-                    data_buf[3] = satelliteState.channel;
-                    data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
-                    
                     DEBUG_PGM_PRINTLN("responding to mode command");
-                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 6);
+                    send_packet(SDRS_ADDR, RAD_ADDR,
+                                ibus_data("\x3E\x00\x00..\x04"),
+                                NULL, true);
+
+                    satelliteState.active = false;
                     break;
                     
                 case SDRS_CMD_CHAN_UP:
@@ -357,57 +360,57 @@ void dispatch_packet(const uint8_t *packet) {
                     handle_buttons(rx_buf[4], rx_buf[5]);
                     
                     // a little something for the display
-                    data_buf = "\x3E\x01\x00..\x04Hi there!";
-                    data_buf[3] = satelliteState.channel;
-                    data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
-                    
                     DEBUG_PGM_PRINTLN("sending text after channel change");
-                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 15);
+                    send_packet(SDRS_ADDR, RAD_ADDR,
+                                ibus_data("\x3E\x01\x00..\x04"),
+                                "Yo.", true);
                     
                     // fall through!
 
                 case SDRS_CMD_NOW:
-                    // this is the command received when the mode is changed on the radio to
-                    // select SIRIUS.  It is also sent periodically if we don't respond quickly
-                    // enough with an updated display command (3D 01 00 …)
+                    // this is the command received when the mode is changed
+                    // on the radio to select SIRIUS. It is also sent
+                    // periodically if we don't respond quickly enough with an
+                    // updated display command (3D 01 00 …)
                     DEBUG_PGM_PRINTLN("got \"now\"");
+                    satelliteState.active = true;
                 
                 case SDRS_CMD_SAT:
                     DEBUG_PGM_PRINTLN("got sat press");
-
-                    data_buf = "\x3E\x02\x00..\x04   !!   ";
-                    data_buf[3] = satelliteState.channel;
-                    data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
-                    
-                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 14);
+                    send_packet(SDRS_ADDR, RAD_ADDR,
+                                ibus_data("\x3E\x02\x00..\x04   !!   "),
+                                NULL, true);
                     
                     if (rx_buf[4] == SDRS_CMD_NOW) {
+                        delay(10);
                         // a little something for the display
-                        data_buf = "\x3E\x01\x00..\x04Hi there!";
-                        data_buf[3] = satelliteState.channel;
-                        data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
                         DEBUG_PGM_PRINTLN("sending text for \"now\"");
-                        send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 15);
+                        snprintf_P(global_text_data, 10, PSTR("chan %3d!"), satelliteState.channel);
+                        send_packet(SDRS_ADDR, RAD_ADDR,
+                                    ibus_data("\x3E\x01\x00..\x04"),
+                                    // "........",
+                                    global_text_data,
+                                    true);
                     }
                     break;
                     
                 case SDRS_CMD_INF1:
                     DEBUG_PGM_PRINTLN("got first inf press");
                     
-                    data_buf = "\x3E\x01\x06..\x01dummy1"; // this text actually shows! (kind of; chopped 1st char, garbled last)
-                    data_buf[3] = satelliteState.channel;
-                    data_buf[4] = (satelliteState.band << 4) | satelliteState.preset;
-                    
-                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 12);
+                    // this text actually shows! (kind of; chopped 1st char,
+                    // garbled last));
+                     send_packet(SDRS_ADDR, RAD_ADDR,
+                                ibus_data("\x3E\x01\x06..\x01dummy1"),
+                                NULL, true);
                     break;
                 
                 case SDRS_CMD_INF2:
                     DEBUG_PGM_PRINTLN("got second inf press");
                 
-                    data_buf = "\x3E\x01\x07.\x01\x01dummy2";
-                    data_buf[3] = satelliteState.channel;
-            
-                    send_packet(SDRS_ADDR, RAD_ADDR, data_buf, 12);
+                    // @todo reconcile this with dbroome's code
+                    send_packet(SDRS_ADDR, RAD_ADDR,
+                                ibus_data("\x3E\x01\x07..\x01dummy2"),
+                                NULL, true);
                     break;
                 
                 case SDRS_CMD_M:
@@ -461,12 +464,98 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
 //          process_incoming_data
 //              send_packet
 // Data only gets transmitted by outermost loop
-void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
+
+/*
+    pgm_data is the static part of the message being sent, ie. without any
+    text that may be dynamically generated. It's just a byte (char) array, but
+    terminated with the "special" sequence \xAA\xBB, so that I don't need to
+    manually keep track of the length. This means that none of these PROGMEM
+    strings can have that sequence embedded in them!
+*/
+void send_packet(uint8_t src,
+                 uint8_t dest,
+                 // const prog_int16_t *pgm_data,
+                 PGM_P pgm_data,
+                 const char *text,
+                 boolean send_channel_preset_and_band)
+    {
     // flag indicating that this invocation should actually transmit the data
-    boolean do_tx = false;
+    boolean do_tx; /* = false */
+    
+    // length of pgm_data
+    size_t pgm_data_len = 0;
+    
+    // add length of text data (the display only shows 8 chars…)
+    size_t text_len = 0;
+
+    // length of text and pgm data
+    size_t data_len; /* = 0 */
+    
+    // determine length of pgm_data
+    while (
+        ! (
+            (pgm_read_byte(&pgm_data[pgm_data_len])     == ((uint8_t) IBUS_DATA_END_MARKER[0])) &&
+            (pgm_read_byte(&pgm_data[pgm_data_len + 1]) == ((uint8_t) IBUS_DATA_END_MARKER[1]))
+        )
+    ) {
+        pgm_data_len += 1;
+    }
+    
+    DEBUG_PGM_PRINT("pgm_data_len: ");
+    DEBUG_PRINTLN(pgm_data_len, DEC);
+
+    if (text != NULL) {
+        text_len = strlen(text);
+        DEBUG_PRINT(text);
+        DEBUG_PGM_PRINT(" has length ");
+        DEBUG_PRINTLN(text_len, DEC);
+    } else {
+        DEBUG_PGM_PRINTLN("no text");
+    }
+    
+    data_len = pgm_data_len + text_len;
+    DEBUG_PGM_PRINT("data_len: ");
+    DEBUG_PRINTLN(data_len, DEC);
+    
+    uint8_t *data = (uint8_t *) malloc((size_t) data_len);
+    if (data == NULL) {
+        DEBUG_PGM_PRINT("[ERROR] Unable to malloc data of length ");
+        DEBUG_PRINTLN(data_len, DEC);
+        return;
+    } else {
+        DEBUG_PGM_PRINTLN("malloc()'d data successfully");
+    }
+    
+    DEBUG_PGM_PRINT("pgm_data: ");
+    for (uint8_t i = 0; i < pgm_data_len; i++) {
+        data[i] = pgm_read_byte(&pgm_data[i]);
+        DEBUG_PRINT(data[i], HEX);
+        DEBUG_PGM_PRINT(" ");
+    }
+    DEBUG_PGM_PRINTLN(" ");
+        
+    // fill in the blanks for the channel, band, and preset
+    if (send_channel_preset_and_band) {
+        data[3] = satelliteState.channel;
+        data[4] = ((satelliteState.band << 4) | satelliteState.preset);
+    }
+    
+    // append text
+    if (text != NULL) {
+        DEBUG_PGM_PRINT("text: ");
+        for (uint8_t i = 0; i < text_len; i++) {
+            data[pgm_data_len + i] = text[i];
+            DEBUG_PRINT(data[pgm_data_len + i], HEX);
+            DEBUG_PGM_PRINT(" ");
+        }
+        DEBUG_PGM_PRINTLN(" ");
+        // memcpy((void *)&data[pgm_data_len], (void *)&text, text_len);
+    }
     
     // add space for dest and checksum bytes
     size_t packet_len = data_len + 2;
+    DEBUG_PGM_PRINT("packet_len: ");
+    DEBUG_PRINTLN(packet_len, DEC);
 
     // ensure sufficient space in tx buffer
     // add two more for src and packet_len bytes
@@ -519,10 +608,14 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
                 // force all pending data to be processed. could potentially spin
                 // for a while, if there's fewer than 3 bytes in the buffer 
                 // because process_incoming_data() won't do anything until then.
-                while (Serial.available()) {
+                unsigned long expire = millis() + 10L;
+                while (Serial.available() && (millis() < expire)) {
                     DEBUG_PGM_PRINTLN("forcing process_incoming_data() while sending");
-                    process_incoming_data();
+                    if (process_incoming_data()) {
+                        expire = millis() + 10L;
+                    }
                 }
+                Serial.flush(); // @todo warning!
                 
                 digitalWrite(LED_PIN, HIGH);
                 ledOffTime = millis() + 500L;
@@ -534,7 +627,7 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
                         delay(1); // delay 1ms
                     }
                     else {
-                        #if DEBUG_PACKET_PARSING
+                        #if DEBUG && DEBUG_PACKET_PARSING
                             DEBUG_PRINT((uint8_t) tx_buf[i], HEX);
                             DEBUG_PGM_PRINT(" ");
                         #endif
@@ -544,7 +637,7 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
                     }
                 }
                 
-                #if DEBUG_PACKET_PARSING
+                #if DEBUG && DEBUG_PACKET_PARSING
                     DEBUG_PGM_PRINTLN("done sending");
                 #endif
                 
@@ -579,6 +672,8 @@ void send_packet(uint8_t src, uint8_t dest, const char *data, size_t data_len) {
             tx_active = false;
         } // if (do_tx)
     }
+    
+    free(data);
 }
 // }}}
 

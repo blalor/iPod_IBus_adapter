@@ -22,6 +22,17 @@
     #define DEBUG_PGM_PRINTLN(...) /**< No-op. **/
 #endif
 
+// do like PSTR -> (uint8_t *), but for (int16_t *)
+#define PINT(s) \
+    ( \
+        __extension__ ( \
+            { \
+                static int16_t *__c PROGMEM = ((int16_t *)(s)); \
+                &__c[0]; \
+            } \
+        ) \
+    )
+
 void pgm_print(Print *dest, PGM_P);
 void pgm_println(Print *dest, PGM_P);
 

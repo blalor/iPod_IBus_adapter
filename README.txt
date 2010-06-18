@@ -84,3 +84,9 @@ Button presses and interactions that cause ACQUIRING to (re)appear
 
 Other observances:
     • holding "M" seems to force a "now" command, but a single press of "M" does nothing
+
+
+characters:
+    ~ == ->
+ \x7f == <-
+ 

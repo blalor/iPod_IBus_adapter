@@ -291,7 +291,7 @@ def main():
                         bytesize = 8,
                         parity = 'E',
                         stopbits = 1,
-                        timeout = 0.25)
+                        timeout = 1)
     
     ser.open()
     
@@ -308,34 +308,34 @@ def main():
         if time.time() > next_sdrs_bcast:
             # send out the announce message
             ## print "sending sat radio announce"
-            ## ser.write(make_packet('73', 'FF', '02 01'))
+            ser.write(make_packet('73', 'FF', '02 01'))
             
             ## print "sending cd changer radio announce"
             ## ser.write("".join([chr(int(x, 16)) for x in "18 04 FF 02 01 E0".split()]))
             next_sdrs_bcast = time.time() + 10
         
-        # if time.time() > next_sdrs_text:
-        #     next_sdrs_text = time.time() + 1
-        #     #if text_count > 2: continue
-        #     
-        #     print "sending text to sad rad", msg_ind
-        #     if msg_ind > len(msg) - 1:
-        #         msg_ind = 0
-        #     
-        #     text = msg[msg_ind:msg_ind+max_msg_len]
-        #     #print 'text:', text
-        #     
-        #     ser.write(make_packet('73', '68',
-        #                           '3E 01 00 %.2X %d%d 04' % (sat_channel, sat_band, sat_preset),
-        #                           text))
-        #     
-        #     time.sleep(1)
-        #     ser.write(make_packet('73', '68',
-        #                           '3E 01 00 %.2X %d%d 05' % (sat_channel, sat_band, sat_preset),
-        #                           text))
-        #     
-        #     
-        #     msg_ind += 1
+        if time.time() > next_sdrs_text:
+            next_sdrs_text = time.time() + 1
+            #if text_count > 2: continue
+            
+            print "sending text to sad rad", msg_ind
+            if msg_ind > len(msg) - 1:
+                msg_ind = 0
+            
+            text = msg[msg_ind:msg_ind+max_msg_len]
+            #print 'text:', text
+            
+            ser.write(make_packet('73', '68',
+                                  '3E 01 00 %.2X %d%d 04' % (sat_channel, sat_band, sat_preset),
+                                  text))
+            
+            time.sleep(1)
+            ser.write(make_packet('73', '68',
+                                  '3E 01 00 %.2X %d%d 05' % (sat_channel, sat_band, sat_preset),
+                                  text))
+            
+            
+            msg_ind += 1
             
             
             
@@ -344,7 +344,7 @@ def main():
             # prime the buffer with two bytes
             buf = [ord(b) for b in ser.read(2)]
         
-        #print "buf:", ['%.2x' % (b,) for b in buf]
+        print "buf:", ['%.2x' % (b,) for b in buf]
         
         if len(buf) < 2:
             # no more data
@@ -363,10 +363,10 @@ def main():
             print 'dropping %.2x: unknown src' % (dropped[-1],)
             continue
         
-        # print "data_len: %d; have %d bytes" % (data_len, len(buf) - 2)
+        print "data_len: %d; have %d bytes" % (data_len, len(buf) - 2)
         if len(buf) < data_len + 2:
             amt_to_read = (data_len + 2) - len(buf)
-            # print "reading %d bytes" % (amt_to_read,)
+            print "reading %d bytes" % (amt_to_read,)
             buf.extend([ord(b) for b in ser.read(amt_to_read)])
         
         if len(buf) < data_len + 2:
