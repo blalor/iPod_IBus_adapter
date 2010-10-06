@@ -1,14 +1,13 @@
 #define DEBUG 1
 #define DEBUG_PACKET_PARSING 1
 
-#if DEBUG
-    #include <NewSoftSerial.h>
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "HardwareSerial.h"
+
+#include <SimpleRemote.h>
+#include <NewSoftSerial.h>
 
 #include "pgm_util.h"
 
@@ -20,6 +19,8 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 // pin mappings
 #define CONSOLE_RX_PIN  2
 #define CONSOLE_TX_PIN  3
+#define IPOD_RX_PIN     8
+#define IPOD_TX_PIN     9
 #define LED_PIN        13
 
 // addresses of IBus devices
@@ -93,6 +94,12 @@ unsigned long ledOffTime;
 // timeout duration before giving up on a read
 unsigned long readTimeout;
 
+// NSS instance for the iPod
+NewSoftSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN);
+
+// iPod simple remote instance
+SimpleRemote simpleRemote;
+
 #if DEBUG
     NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
@@ -121,6 +128,9 @@ void setup() {
     
     pinMode(LED_PIN, OUTPUT);
     
+    simpleRemote.setSerial(nssIPod);
+    simpleRemote.setup();
+
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
@@ -347,7 +357,13 @@ void dispatch_packet(const uint8_t *packet) {
                     send_packet(SDRS_ADDR, RAD_ADDR,
                                 ibus_data("\x3E\x00\x00..\x04"),
                                 NULL, true);
-
+                    
+                    // pause the iPod if we're transitioning to inactive
+                    if (satelliteState.active) {
+                        simpleRemote.sendJustPause();
+                        simpleRemote.sendButtonReleased();
+                    }
+                    
                     satelliteState.active = false;
                     break;
                     
@@ -373,6 +389,18 @@ void dispatch_packet(const uint8_t *packet) {
                     // periodically if we don't respond quickly enough with an
                     // updated display command (3D 01 00 …)
                     DEBUG_PGM_PRINTLN("got \"now\"");
+                    
+                    // if we're transitioning to "on", wake up the iPod and
+                    // start playing
+                    if (! satelliteState.active) {
+                        simpleRemote.sendiPodOn();
+                        delay(50);
+                        simpleRemote.sendButtonReleased();
+                        
+                        simpleRemote.sendJustPlay();
+                        simpleRemote.sendButtonReleased();
+                    }
+                    
                     satelliteState.active = true;
                 
                 case SDRS_CMD_SAT:
@@ -434,10 +462,14 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
     switch(button_id) {
         case 0x03: // — channel up
             satelliteState.channel += 1;
+            simpleRemote.sendSkipForward();
+            simpleRemote.sendButtonReleased();
             break;
         
         case 0x04: // — channel down
             satelliteState.channel -= 1;
+            simpleRemote.sendSkipBackward();
+            simpleRemote.sendButtonReleased();
             break;
         
         case 0x08: // — preset button pressed
@@ -446,7 +478,14 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
             break;
         
         case 0x05: // — channel up and hold
+            simpleRemote.sendNextAlbum();
+            simpleRemote.sendButtonReleased();
+            break;
+            
         case 0x06: // — channel down and hold
+            simpleRemote.sendPreviousAlbum();
+            simpleRemote.sendButtonReleased();
+            break;
         
         case 0x09: // — preset button press and hold
             // data byte 2 is preset number (0x01, 0x02, … 0x06)
