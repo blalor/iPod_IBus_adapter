@@ -1,6 +1,8 @@
 #define DEBUG 1
 #define DEBUG_PACKET_PARSING 1
 
+#include <avr/interrupt.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,11 +19,17 @@
 const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 
 // pin mappings
-#define CONSOLE_RX_PIN  2
-#define CONSOLE_TX_PIN  3
-#define IPOD_RX_PIN     8
-#define IPOD_TX_PIN     9
-#define LED_PIN        13
+#define INH_PIN         2
+
+#define CONSOLE_RX_PIN  3
+#define CONSOLE_TX_PIN  4
+
+#define IPOD_RX_PIN    18
+#define IPOD_TX_PIN    19
+
+#define LED1_PIN        7
+#define LED2_PIN        8
+#define LED3_PIN        6
 
 // addresses of IBus devices
 #define RAD_ADDR  0x68
@@ -105,6 +113,8 @@ SimpleRemote simpleRemote;
 #endif
 
 char global_text_data[10];
+volatile boolean bus_inhibited;
+boolean announcement_sent;
 
 // this'll give me flexibility to swap between soft- and hard-ware serial 
 // while developing
@@ -122,23 +132,42 @@ void setup() {
         nssConsole.begin(115200);
     #endif
     
+    pinMode(LED1_PIN, OUTPUT);
+    pinMode(LED2_PIN, OUTPUT);
+    pinMode(LED3_PIN, OUTPUT);
+
+    pinMode(INH_PIN, INPUT);
+    
+    simpleRemote.setSerial(nssIPod);
+    simpleRemote.setup();
+     
+    announcement_sent = false;
+
     // set up serial for IBus; 9600,8,E,1
     Serial.begin(9600);
     UCSR0C |= _BV(UPM01); // even parity
     
-    pinMode(LED_PIN, OUTPUT);
+    // test to make sure the bus is alive; if it isn't, shut down (but do not
+    // reconfigure) the USART
+    configureForBusInhibition();
     
-    simpleRemote.setSerial(nssIPod);
-    simpleRemote.setup();
-
+    // enable INT0
+    // @todo use this interrupt to wake the µC from sleep
+    EICRA |= _BV(ISC01);
+    EICRA &= ~(_BV(ISC00));
+    EIMSK |= _BV(INT0);
+    
+    // can't do anything while the bus is asleep.
+    while(bus_inhibited);
+    
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
     
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_PIN, HIGH);
+        digitalWrite(LED1_PIN, HIGH);
         delay(250);
-        digitalWrite(LED_PIN, LOW);
+        digitalWrite(LED1_PIN, LOW);
         delay(250);
     }
 }
@@ -147,23 +176,60 @@ void setup() {
 // {{{ loop
 void loop() {
     if (millis() > ledOffTime) {
-        digitalWrite(LED_PIN, LOW);
+        digitalWrite(LED1_PIN, LOW);
     }
     
-    /*
-    The serial reading is pretty naive. If we start reading in the middle of
-    a packet transmission, the checksum validation will fail. All data
-    received up to that point will be lost. It's expected that this loop will
-    eventually synchronize with the stream during a lull in the conversation,
-    where all available and "invalid" data will have been consumed.
-    */
-    if ((lastPoll + 20000L) < millis()) {
-        DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
-        send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
-        lastPoll = millis();
-    }
+    // can't do anything while the bus is asleep.
+    if (bus_inhibited) {
+        // @todo flash leds?
+    } else {
+        /*
+        The serial reading is pretty naive. If we start reading in the middle of
+        a packet transmission, the checksum validation will fail. All data
+        received up to that point will be lost. It's expected that this loop will
+        eventually synchronize with the stream during a lull in the conversation,
+        where all available and "invalid" data will have been consumed.
+        */
+        if ((lastPoll + 20000L) < millis()) {
+            DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
+            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
+            lastPoll = millis();
+        }
     
-    process_incoming_data();
+        process_incoming_data();
+    }
+}
+// }}}
+
+// {{{ configureForBusInhibition
+/**
+ * If the I-Bus is alive, enable the RX hardware.  If it's not, shut down
+ * the RX hardware and flush the buffer.
+ */
+void configureForBusInhibition() {
+    // bus is uninhibited (alive) when PD2 is high
+    bus_inhibited = ((PIND & _BV(PD2)) != 0);
+    
+    if (bus_inhibited) {
+        // shutdown the receive circuitry, flush any remaining data
+        UCSR0B &= ~(_BV(RXEN0));
+        UCSR0B &= ~(_BV(RXCIE0));
+        
+        Serial.flush();
+    } else {
+        // bus is now enabled; restart USART
+        UCSR0B |= _BV(RXEN0);
+        UCSR0B |= _BV(RXCIE0);
+    }
+}
+// }}}
+
+// {{{ INT0_vect
+/**
+ * ISR for the external interrupt on (physical) pin 4, PD2.
+ */
+ISR(INT0_vect) {
+    configureForBusInhibition();
 }
 // }}}
 
@@ -184,8 +250,13 @@ boolean process_incoming_data() {
         }
     #endif
     
+    // filter out packets from sources we don't care about
+    if (Serial.peek(PKT_SRC) != RAD_ADDR) {
+        DEBUG_PGM_PRINTLN("dropping byte from unknown source");
+        Serial.remove(1);
+    }
     // need at least two bytes to a packet, src and length
-   if (bytes_availble > 2) {
+    else if (bytes_availble > 2) {
         // length of the data
         uint8_t data_len = Serial.peek(PKT_LEN);
 
@@ -307,10 +378,10 @@ void dispatch_packet(const uint8_t *packet) {
     // DEBUG_PGM_PRINT("got packet from ");
     // DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
     
-    if ((rx_buf[PKT_SRC] == RAD_ADDR) && (rx_buf[PKT_DEST] == 0xFF)) {
+    if ((packet[PKT_SRC] == RAD_ADDR) && (packet[PKT_DEST] == 0xFF)) {
         // broadcast from the radio
         
-        if (rx_buf[PKT_CMD] == 0x02) {
+        if (packet[PKT_CMD] == 0x02) {
             // device status ready
             
             // use this as a trigger to send our initial announcment.
@@ -323,19 +394,19 @@ void dispatch_packet(const uint8_t *packet) {
             send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
         }
     }
-    else if ((rx_buf[PKT_SRC] == RAD_ADDR) && (rx_buf[PKT_DEST] == SDRS_ADDR)) {
+    else if ((packet[PKT_SRC] == RAD_ADDR) && (packet[PKT_DEST] == SDRS_ADDR)) {
         // check the command byte
-        if (rx_buf[PKT_CMD] == 0x01) {
+        if (packet[PKT_CMD] == 0x01) {
             // handle poll request
             lastPoll = millis();
             
             DEBUG_PGM_PRINTLN("responding to poll request");
             send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x00"), NULL, false);
         }
-        else if (rx_buf[PKT_CMD] == 0x3D) {
+        else if (packet[PKT_CMD] == 0x3D) {
             // command sent that we must reply to
             
-            switch(rx_buf[4]) {
+            switch(packet[4]) {
                 case SDRS_CMD_POWER:
                     // this is sometimes sent by the radio immediately after
                     // our initial announcemnt if the ignition is off (ACC
@@ -343,7 +414,7 @@ void dispatch_packet(const uint8_t *packet) {
                     // initialized.  Either way, it seems to indicate that the
                     // radio's off and we shouldn't be doing anything.
                     DEBUG_PGM_PRINT("got power command, ");
-                    DEBUG_PRINTLN(rx_buf[5], HEX);
+                    DEBUG_PRINTLN(packet[5], HEX);
                     // fall through
                 
                 case SDRS_CMD_MODE:
@@ -351,7 +422,7 @@ void dispatch_packet(const uint8_t *packet) {
                     // SIRIUS, and when the radio is turned off while SIRIUS
                     // is active.
                     DEBUG_PGM_PRINT("got mode command, ");
-                    DEBUG_PRINTLN(rx_buf[5], HEX);
+                    DEBUG_PRINTLN(packet[5], HEX);
                     
                     DEBUG_PGM_PRINTLN("responding to mode command");
                     send_packet(SDRS_ADDR, RAD_ADDR,
@@ -373,7 +444,7 @@ void dispatch_packet(const uint8_t *packet) {
                 case SDRS_CMD_CHAN_DOWN_HOLD:
                 case SDRS_CMD_PRESET:
                 case SDRS_CMD_PRESET_HOLD:
-                    handle_buttons(rx_buf[4], rx_buf[5]);
+                    handle_buttons(packet[4], packet[5]);
                     
                     // a little something for the display
                     DEBUG_PGM_PRINTLN("sending text after channel change");
@@ -409,7 +480,7 @@ void dispatch_packet(const uint8_t *packet) {
                                 ibus_data("\x3E\x02\x00..\x04   !!   "),
                                 NULL, true);
                     
-                    if (rx_buf[4] == SDRS_CMD_NOW) {
+                    if (packet[4] == SDRS_CMD_NOW) {
                         delay(10);
                         // a little something for the display
                         DEBUG_PGM_PRINTLN("sending text for \"now\"");
@@ -656,7 +727,7 @@ void send_packet(uint8_t src,
                 }
                 Serial.flush(); // @todo warning!
                 
-                digitalWrite(LED_PIN, HIGH);
+                digitalWrite(LED1_PIN, HIGH);
                 ledOffTime = millis() + 500L;
                 
                 uint8_t sent_count = 0;
