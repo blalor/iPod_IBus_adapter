@@ -10,6 +10,7 @@ Copyright (c) 2010 __MyCompanyName__. All rights reserved.
 import sys
 import os
 import serial
+import datetime
 
 def main():
     ser = serial.Serial(port = sys.argv[1], baudrate = 115200, timeout = 0.25)
@@ -28,7 +29,9 @@ def main():
     while True:
         line =  ser.readline().strip()
         if line:
-            print line
+            print '[%s] %s' % (datetime.datetime.now().isoformat(), line)
+            
+            sys.stdout.flush()
         
     
 

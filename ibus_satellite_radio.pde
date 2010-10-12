@@ -1,7 +1,6 @@
 #define DEBUG 1
-#define DEBUG_PACKET_PARSING 1
-
-#include <avr/interrupt.h>
+#define DEBUG_PACKET_PARSING 0
+#define WICKED_VERBOSE 0
 
 #include <string.h>
 #include <stdlib.h>
@@ -13,6 +12,9 @@
 
 #include "pgm_util.h"
 
+// @todo look into whether the preprocessor will magically convert 
+//   strlen("foo") -> 3
+// https://lists.linux-foundation.org/pipermail/openais/2010-March/014011.html
 #define IBUS_DATA_END_MARKER() "\xAA\xBB"
 #define ibus_data(_DATA) PSTR((_DATA IBUS_DATA_END_MARKER()))
 
@@ -27,9 +29,9 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 #define IPOD_RX_PIN    18
 #define IPOD_TX_PIN    19
 
-#define LED1_PIN        7
-#define LED2_PIN        8
-#define LED3_PIN        6
+#define LED_GRN 8
+#define LED_YEL 7
+#define LED_RED 6
 
 // addresses of IBus devices
 #define RAD_ADDR  0x68
@@ -68,17 +70,29 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 
 #define TX_BUF_LEN 128
 #define RX_BUF_LEN (MAX_EXPECTED_LEN + 2)
-#define TX_DELAY_MARKER -1
+
+/*
+prescale	target timer count	rounded timer count		 (D)	(E)	% diff
+       1	         11110.111	              11110		1440	1440.014400144	-0.00100001000009797
+       8	          1387.888	               1388		1440	1439.88480921526	0.00799936005120117
+      32	           346.222	                346		1440	1440.92219020173	-0.0640409862311913
+      64	           172.611	                173		1440	1436.7816091954	0.223499361430385
+     128	            85.805	                 86		1440	1436.7816091954	0.223499361430385
+     256	            42.402	                 42		1440	1453.48837209302	-0.936692506459949
+    1024	             9.850	                 10		1440	1420.45454545455	1.35732323232322
+target timer count=((16000000/A2)/(960*1.5))-1
+rounded timer count=ROUND(target timer count '1', 0)
+(D)=(16000000/A2)/(target timer count '1'+1)
+(E)=(16000000/A2)/(rounded timer count '1'+1)
+% diff=100-(E2*100)/D2
+*/
+#define CONTENTION_TIMEOUT 173        
 
 // buffer for building outgoing packets
 // int because we need a marker in between messages to delay activity on the
 // bus briefly
 int tx_buf[TX_BUF_LEN];
 uint8_t tx_ind;
-
-// flag indicating that we're already in the process of sending data; helps to
-// queue outgoing messages
-boolean tx_active;
 
 // buffer for processing incoming packets; same size as serial buffer
 uint8_t rx_buf[RX_BUF_LEN];
@@ -138,43 +152,60 @@ void setup() {
     #endif
     
     MCUSR = 0;
-    
-    pinMode(LED1_PIN, OUTPUT);
-    pinMode(LED2_PIN, OUTPUT);
-    pinMode(LED3_PIN, OUTPUT);
 
+    pinMode(LED_GRN, OUTPUT);
+    pinMode(LED_YEL, OUTPUT);
+    pinMode(LED_RED, OUTPUT);
+    
     pinMode(INH_PIN, INPUT);
+    
+    // indicate setup is underway
+    digitalWrite(LED_YEL, HIGH);
+    
+    // Set up timer2 at Fcpu/1 (no prescaler) for contention detection. Must
+    // be done before any serial activity!
+    //     CS22:1, CS21:0, CS20:0
+    TCCR2B |= _BV(CS22);
+    TCCR2B &= ~(_BV(CS21) | _BV(CS20));
     
     simpleRemote.setSerial(nssIPod);
     simpleRemote.setup();
      
     announcement_sent = false;
-
+    
     // set up serial for IBus; 9600,8,E,1
     Serial.begin(9600);
     UCSR0C |= _BV(UPM01); // even parity
     
     // test to make sure the bus is alive; if it isn't, shut down (but do not
     // reconfigure) the USART
-    configureForBusInhibition();
-    
-    // enable INT0
-    // @todo use this interrupt to wake the µC from sleep
-    EICRA |= _BV(ISC01);
-    EICRA &= ~(_BV(ISC00));
-    EIMSK |= _BV(INT0);
     
     // can't do anything while the bus is asleep.
-    while(bus_inhibited);
+    // bus_inhibited = true;
+    // while(bus_inhibited) {
+    //     configureForBusInhibition();
+    // }
+    // 
+    // // enable INT0
+    // // @todo use this interrupt to wake the µC from sleep
+    // attachInterrupt(0, configureForBusInhibition, CHANGE);    
     
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
     
+    digitalWrite(LED_GRN, LOW);
+    digitalWrite(LED_YEL, LOW);
+    digitalWrite(LED_RED, LOW);
+
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED1_PIN, HIGH);
+        digitalWrite(LED_GRN, HIGH);
+        digitalWrite(LED_YEL, HIGH);
+        digitalWrite(LED_RED, HIGH);
         delay(250);
-        digitalWrite(LED1_PIN, LOW);
+        digitalWrite(LED_GRN, LOW);
+        digitalWrite(LED_YEL, LOW);
+        digitalWrite(LED_RED, LOW);
         delay(250);
     }
 }
@@ -183,7 +214,7 @@ void setup() {
 // {{{ loop
 void loop() {
     if (millis() > ledOffTime) {
-        digitalWrite(LED1_PIN, LOW);
+        digitalWrite(LED_GRN, LOW);
     }
     
     // can't do anything while the bus is asleep.
@@ -208,35 +239,41 @@ void loop() {
 }
 // }}}
 
+// {{{ disableSerialReceive
+inline void disableSerialReceive() {
+    UCSR0B &= ~(_BV(RXEN0) | _BV(RXCIE0));
+}
+// }}}
+
+// {{{ enableSerialReceive
+inline void enableSerialReceive() {
+    // @todo still (usually?) getting 2 bytes in the RX buffer after 
+    //       transmitting, even with RX turned off
+    
+    // wait for TX buffer to flush (while TX is not complete)
+    while (! (UCSR0A & _BV(TXC0)));
+            
+    UCSR0B |= _BV(RXEN0) | _BV(RXCIE0);
+}
+// }}}
+
 // {{{ configureForBusInhibition
 /**
  * If the I-Bus is alive, enable the RX hardware.  If it's not, shut down
  * the RX hardware and flush the buffer.
  */
 void configureForBusInhibition() {
-    // bus is uninhibited (alive) when PD2 is high
-    bus_inhibited = ((PIND & _BV(PD2)) != 0);
+    // bus is uninhibited (alive) when PORTD2 is high
+    bus_inhibited = (digitalRead(INH_PIN) == LOW);
     
     if (bus_inhibited) {
         // shutdown the receive circuitry, flush any remaining data
-        UCSR0B &= ~(_BV(RXEN0));
-        UCSR0B &= ~(_BV(RXCIE0));
-        
+        disableSerialReceive();
         Serial.flush();
     } else {
         // bus is now enabled; restart USART
-        UCSR0B |= _BV(RXEN0);
-        UCSR0B |= _BV(RXCIE0);
+        enableSerialReceive();
     }
-}
-// }}}
-
-// {{{ INT0_vect
-/**
- * ISR for the external interrupt on (physical) pin 4, PD2.
- */
-ISR(INT0_vect) {
-    configureForBusInhibition();
 }
 // }}}
 
@@ -246,19 +283,24 @@ boolean process_incoming_data() {
     
     uint8_t bytes_availble = Serial.available();
     
-    #if DEBUG && DEBUG_PACKET_PARSING
-        if (bytes_availble) {
+    if (bytes_availble) {
+        digitalWrite(LED_YEL, HIGH);
+
+        #if DEBUG && DEBUG_PACKET_PARSING
             DEBUG_PGM_PRINT("[pkt] buf contents: ");
             for (int i = 0; i < bytes_availble; i++) {
                 DEBUG_PRINT(Serial.peek(i), HEX);
                 DEBUG_PGM_PRINT(" ");
             }
-            DEBUG_PGM_PRINTLN(" ");
-        }
-    #endif
+            DEBUG_PRINTLN();
+        #endif
+    }
     
     // filter out packets from sources we don't care about
-    if (Serial.peek(PKT_SRC) != RAD_ADDR) {
+    // I don't like this solution at all, but until I can implement a timer to 
+    // reset in the RX interrupt I think this will at least avoid getting 
+    // stuck waiting for enough data to arrive
+    if (bytes_availble && (Serial.peek(PKT_SRC) != RAD_ADDR)) {
         DEBUG_PGM_PRINTLN("dropping byte from unknown source");
         Serial.remove(1);
     }
@@ -340,11 +382,13 @@ boolean process_incoming_data() {
                     }
 
                     #if DEBUG && DEBUG_PACKET_PARSING
-                        DEBUG_PGM_PRINTLN(" ");
+                        DEBUG_PRINTLN();
                     #endif
-
-                    // DEBUG_PGM_PRINT("packet from ");
-                    // DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
+                    
+                    #if WICKED_VERBOSE
+                        DEBUG_PGM_PRINT("packet from ");
+                        DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
+                    #endif
                     
                     dispatch_packet(rx_buf);
                 }
@@ -374,6 +418,8 @@ boolean process_incoming_data() {
         }
     } // if (bytes_availble  >= 2)
     
+    digitalWrite(LED_YEL, LOW);
+
     return found_message;
 }
 // }}}
@@ -382,8 +428,10 @@ boolean process_incoming_data() {
 void dispatch_packet(const uint8_t *packet) {
     // determine if the packet is from the radio and addressed to us, or if there
     // are any other packets we should use as a trigger.
-    // DEBUG_PGM_PRINT("got packet from ");
-    // DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
+    #if WICKED_VERBOSE
+        DEBUG_PGM_PRINT("got packet from ");
+        DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
+    #endif
     
     if ((packet[PKT_SRC] == RAD_ADDR) && (packet[PKT_DEST] == 0xFF)) {
         // broadcast from the radio
@@ -595,9 +643,8 @@ void send_packet(uint8_t src,
                  PGM_P pgm_data,
                  const char *text,
                  boolean send_channel_preset_and_band)
-    {
-    // flag indicating that this invocation should actually transmit the data
-    boolean do_tx; /* = false */
+{
+    boolean sent_successfully = false;
     
     // length of pgm_data
     size_t pgm_data_len = 0;
@@ -618,39 +665,49 @@ void send_packet(uint8_t src,
         pgm_data_len += 1;
     }
     
-    DEBUG_PGM_PRINT("pgm_data_len: ");
-    DEBUG_PRINTLN(pgm_data_len, DEC);
-
+    #if WICKED_VERBOSE
+        DEBUG_PGM_PRINT("pgm_data_len: ");
+        DEBUG_PRINTLN(pgm_data_len, DEC);
+    #endif
+    
     if (text != NULL) {
         text_len = strlen(text);
-        DEBUG_PRINT(text);
-        DEBUG_PGM_PRINT(" has length ");
-        DEBUG_PRINTLN(text_len, DEC);
-    } else {
-        DEBUG_PGM_PRINTLN("no text");
+    //     DEBUG_PRINT(text);
+    //     DEBUG_PGM_PRINT(" has length ");
+    //     DEBUG_PRINTLN(text_len, DEC);
+    // } else {
+    //     DEBUG_PGM_PRINTLN("no text");
     }
     
     data_len = pgm_data_len + text_len;
-    DEBUG_PGM_PRINT("data_len: ");
-    DEBUG_PRINTLN(data_len, DEC);
+    #if WICKED_VERBOSE
+        DEBUG_PGM_PRINT("data_len: ");
+        DEBUG_PRINTLN(data_len, DEC);
+    #endif
     
     uint8_t *data = (uint8_t *) malloc((size_t) data_len);
     if (data == NULL) {
         DEBUG_PGM_PRINT("[ERROR] Unable to malloc data of length ");
         DEBUG_PRINTLN(data_len, DEC);
         return;
-    } else {
-        DEBUG_PGM_PRINTLN("malloc()'d data successfully");
+    // } else {
+    //     DEBUG_PGM_PRINTLN("malloc()'d data successfully");
     }
     
-    DEBUG_PGM_PRINT("pgm_data: ");
+    #if WICKED_VERBOSE
+        DEBUG_PGM_PRINT("pgm_data: ");
+    #endif
     for (uint8_t i = 0; i < pgm_data_len; i++) {
         data[i] = pgm_read_byte(&pgm_data[i]);
-        DEBUG_PRINT(data[i], HEX);
-        DEBUG_PGM_PRINT(" ");
+        #if WICKED_VERBOSE
+            DEBUG_PRINT(data[i], HEX);
+            DEBUG_PGM_PRINT(" ");
+        #endif
     }
-    DEBUG_PGM_PRINTLN(" ");
-        
+    #if WICKED_VERBOSE
+        DEBUG_PRINTLN();
+    #endif
+    
     // fill in the blanks for the channel, band, and preset
     if (send_channel_preset_and_band) {
         data[3] = satelliteState.channel;
@@ -665,15 +722,17 @@ void send_packet(uint8_t src,
             DEBUG_PRINT(data[pgm_data_len + i], HEX);
             DEBUG_PGM_PRINT(" ");
         }
-        DEBUG_PGM_PRINTLN(" ");
+        DEBUG_PRINTLN();
         // memcpy((void *)&data[pgm_data_len], (void *)&text, text_len);
     }
     
     // add space for dest and checksum bytes
     size_t packet_len = data_len + 2;
-    DEBUG_PGM_PRINT("packet_len: ");
-    DEBUG_PRINTLN(packet_len, DEC);
-
+    #if WICKED_VERBOSE
+        DEBUG_PGM_PRINT("packet_len: ");
+        DEBUG_PRINTLN(packet_len, DEC);
+    #endif
+    
     // ensure sufficient space in tx buffer
     // add two more for src and packet_len bytes
     if ((tx_ind + packet_len + 2) >= TX_BUF_LEN) {
@@ -688,21 +747,10 @@ void send_packet(uint8_t src,
                 DEBUG_PRINT((uint8_t) data[i], HEX);
                 DEBUG_PGM_PRINT(" ");
             }
-            DEBUG_PGM_PRINTLN("");
+            DEBUG_PRINTLN();
         #endif
     }
     else {
-        if (! tx_active) {
-            do_tx = true;
-            tx_active = true;
-        }
-        
-        if (! do_tx) {
-            DEBUG_PGM_PRINTLN("re-entered send_packet()");
-            // insert delay marker between outgoing messages
-            tx_buf[tx_ind++] = TX_DELAY_MARKER;
-        }
-        
         uint8_t tmp_ind = tx_ind;
         
         // copy all data into the tx buffer
@@ -716,81 +764,85 @@ void send_packet(uint8_t src,
 
         // calculate checksum, which goes immediately after the last data byte
         tx_buf[tx_ind++] = calc_checksum(&tx_buf[tmp_ind], tx_ind - tmp_ind);
+        
+        #if DEBUG && DEBUG_PACKET_PARSING
+            DEBUG_PGM_PRINT("packet to send: ");
+            for (int i = 0; i < tx_ind; i++) {
+                DEBUG_PRINT((uint8_t) tx_buf[i], HEX);
+                DEBUG_PGM_PRINT(" ");
+            }
+            DEBUG_PRINTLN();
+        #endif
 
-        if (do_tx) {
-            boolean sent_successfully = false;
-            uint8_t retry_count = 0;
+        
+        digitalWrite(LED_GRN, HIGH);
+        ledOffTime = millis() + 500L;
+        
+        // check for bus contention before sending
+        // 10 retries before failing (which should be *very* generous)
+        for (uint8_t retryCnt = 0; (retryCnt < 10) && (! sent_successfully); retryCnt++) {
+            // wait for line to become clear
+            boolean contention = false;
             
-            while ((! sent_successfully) && (retry_count++ < TX_RETRY_COUNT)) {
-                // force all pending data to be processed. could potentially spin
-                // for a while, if there's fewer than 3 bytes in the buffer 
-                // because process_incoming_data() won't do anything until then.
-                unsigned long expire = millis() + 10L;
-                while (Serial.available() && (millis() < expire)) {
-                    DEBUG_PGM_PRINTLN("forcing process_incoming_data() while sending");
-                    if (process_incoming_data()) {
-                        expire = millis() + 10L;
-                    }
-                }
-                Serial.flush(); // @todo warning!
-                
-                digitalWrite(LED1_PIN, HIGH);
-                ledOffTime = millis() + 500L;
-                
-                uint8_t sent_count = 0;
-                for (int i = 0; i < tx_ind; i++) {
-                    if (tx_buf[i] == TX_DELAY_MARKER) {
-                        DEBUG_PGM_PRINTLN(" pause marker found");
-                        delay(1); // delay 1ms
-                    }
-                    else {
-                        #if DEBUG && DEBUG_PACKET_PARSING
-                            DEBUG_PRINT((uint8_t) tx_buf[i], HEX);
-                            DEBUG_PGM_PRINT(" ");
-                        #endif
-                        
-                        Serial.write((uint8_t) tx_buf[i]);
-                        sent_count++;
-                    }
-                }
-                
-                #if DEBUG && DEBUG_PACKET_PARSING
-                    DEBUG_PGM_PRINTLN("done sending");
-                #endif
-                
-                // wait for data to show up
-                while (Serial.available() < sent_count);
-                
-                boolean verification_failed = false;
-                uint8_t rx_data_ind = 0;
-                for (int i = 0; (i < tx_ind) && (! verification_failed); i++) {
-                    if (tx_buf[i] == TX_DELAY_MARKER) {
-                        // delay marker
-                        continue;
-                    }
-                    
-                    if (Serial.peek(rx_data_ind++) != tx_buf[i]) {
-                        verification_failed = true;
-                    }
-                }
-                
-                sent_successfully = (! verification_failed);
-                
-                if (! verification_failed) {
-                    Serial.remove(sent_count);
-                    DEBUG_PGM_PRINTLN("verification of sent data succeeded");
-                }
-                else {
-                    DEBUG_PGM_PRINTLN("verification of sent data failed");
+            // reset timer2 value
+            TCNT2 = 0;
+            
+            // check that the receive buffer doesn't get any data during the timer cycle
+            while ((TCNT2 < CONTENTION_TIMEOUT) && (! contention)) {
+                if (! (PIND & _BV(0))) { // pin was pulled low, so data being received
+                // if (UCSR0A & _BV(RXC0)) { // unread data in the RX buffer
+                    contention = true;
                 }
             }
             
-            tx_ind = 0;
-            tx_active = false;
-        } // if (do_tx)
+            if (contention) {
+                // someone's sending data; we cannot send
+                digitalWrite(LED_RED, HIGH);
+                DEBUG_PGM_PRINT("CONTENTION SENDING ");
+                DEBUG_PRINTLN(retryCnt, DEC);
+
+                #if DEBUG && DEBUG_PACKET_PARSING
+                    uint8_t bytes_availble = Serial.available();
+                    if (bytes_availble) {
+                        DEBUG_PGM_PRINT("[pkt] buf contents: ");
+                        for (int i = 0; i < bytes_availble; i++) {
+                            DEBUG_PRINT(Serial.peek(i), HEX);
+                            DEBUG_PGM_PRINT(" ");
+                        }
+                        DEBUG_PRINTLN();
+                    }
+                #endif
+                
+                delay(20 * (retryCnt + 1));
+            }
+            else {
+                digitalWrite(LED_RED, LOW);
+            
+                disableSerialReceive();
+                Serial.flush();
+            
+                for (int i = 0; i < tx_ind; i++) {
+                    Serial.write((uint8_t) tx_buf[i]);
+                }
+
+                enableSerialReceive();
+
+                #if DEBUG && DEBUG_PACKET_PARSING
+                    DEBUG_PGM_PRINTLN("done sending");
+                #endif
+
+                tx_ind = 0;
+            
+                sent_successfully = true;
+            }
+        }
     }
     
     free(data);
+    
+    if (! sent_successfully) {
+        DEBUG_PGM_PRINTLN("unable to send after repeated retries");
+    }
 }
 // }}}
 
