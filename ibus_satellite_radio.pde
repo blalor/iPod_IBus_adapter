@@ -130,7 +130,14 @@ Print *console =
 void setup() {
     #if DEBUG
         nssConsole.begin(115200);
+        
+        if (MCUSR & _BV(PORF))  DEBUG_PGM_PRINTLN("power-on reset");
+        if (MCUSR & _BV(EXTRF)) DEBUG_PGM_PRINTLN("external reset");
+        if (MCUSR & _BV(BORF))  DEBUG_PGM_PRINTLN("brown-out reset");
+        if (MCUSR & _BV(WDRF))  DEBUG_PGM_PRINTLN("watchdog reset");
     #endif
+    
+    MCUSR = 0;
     
     pinMode(LED1_PIN, OUTPUT);
     pinMode(LED2_PIN, OUTPUT);
