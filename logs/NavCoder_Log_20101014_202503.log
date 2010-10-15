@@ -1,0 +1,989 @@
+2010-10-14 20:25:03.743:  !
+2010-10-14 20:25:03.743:  ! NavCoder v2.8.398.Beta [EN-US] [i/k-bus] logging started
+2010-10-14 20:25:03.743:  ! Running on Windows XP Media Center Edition (Service Pack 3)  [en-US]
+2010-10-14 20:25:03.743:  ! [Debug Mode]
+2010-10-14 20:25:03.743:  ! [Procotol = Auto]
+2010-10-14 20:25:03.946:  ! showBatteryVoltage: Nave not alive, exiting...
+2010-10-14 20:25:03.946:  ! Bus protocol set to I/K-bus
+2010-10-14 20:25:04.243:  ! Setting COM port parameters for COM5
+2010-10-14 20:25:04.321:  ! COM5 opened
+2010-10-14 20:25:05.134:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:05.134:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:05.290:  80 05 BF 18 00 00 22
+2010-10-14 20:25:05.290:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:05.290:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:25:05.290:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:25:07.336:  80 05 BF 18 00 00 22
+2010-10-14 20:25:07.336:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:08.133:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:08.133:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:09.398:  80 05 BF 18 00 00 22
+2010-10-14 20:25:09.398:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:09.992:  68 03 73 01 19
+2010-10-14 20:25:09.992:  RAD  --> SDRS: Device status request
+2010-10-14 20:25:10.008:  73 04 68 02 00 1D
+2010-10-14 20:25:10.008:  SDRS --> RAD : Device status ready
+2010-10-14 20:25:11.132:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:11.132:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:11.460:  80 05 BF 3F 3F 18 00 00 22 28 04 68 3B 08 0F
+2010-10-14 20:25:11.460:  WARNING: Discarded 15 bytes: [80 05 BF 3F 3F 18 00 00 22 28 04 68 3B 08 0F]
+2010-10-14 20:25:11.460:  80 05 BF 18 00 00 22
+2010-10-14 20:25:11.460:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:11.554:  50 04 68 3B 28 2F
+2010-10-14 20:25:11.554:  MFL  --> RAD : Radio/Telephone control: Search_Down_released
+2010-10-14 20:25:11.851:  50 04 68 3B 08 0F
+2010-10-14 20:25:11.851:  MFL  --> RAD : Radio/Telephone control: Search_Down_pressed
+2010-10-14 20:25:11.976:  50 04 68 3B 28 2F
+2010-10-14 20:25:11.976:  MFL  --> RAD : Radio/Telephone control: Search_Down_released
+2010-10-14 20:25:11.976:  68 05 73 3D 15 01 37
+2010-10-14 20:25:11.976:  RAD  --> SDRS: Cmd_0x3D, Data="15 01"
+2010-10-14 20:25:11.992:  68 05 73 3D 08 06 2D
+2010-10-14 20:25:11.992:  RAD  --> SDRS: Cmd_0x3D, Data="08 06"
+2010-10-14 20:25:12.023:  73 10 68 3E 02 00 09 16 04 42 4F 53 2D 50 48 4C 20 2B
+2010-10-14 20:25:12.023:  SDRS --> RAD : Cmd_0x3E, Data="02 00 09 16 04 42 4F 53 2D 50 48 4C 20"
+2010-10-14 20:25:12.070:  50 04 68 3B 08 0F
+2010-10-14 20:25:12.070:  MFL  --> RAD : Radio/Telephone control: Search_Down_pressed
+2010-10-14 20:25:12.179:  50 04 68 3B 28 2F
+2010-10-14 20:25:12.179:  MFL  --> RAD : Radio/Telephone control: Search_Down_released
+2010-10-14 20:25:12.179:  68 05 73 3D 08 05 2E
+2010-10-14 20:25:12.179:  RAD  --> SDRS: Cmd_0x3D, Data="08 05"
+2010-10-14 20:25:12.210:  73 10 68 3E 02 00 10 15 04 42 4F 53 2D 50 48 4C 20 31
+2010-10-14 20:25:12.210:  SDRS --> RAD : Cmd_0x3E, Data="02 00 10 15 04 42 4F 53 2D 50 48 4C 20"
+2010-10-14 20:25:12.257:  50 04 68 3B 08 0F
+2010-10-14 20:25:12.257:  MFL  --> RAD : Radio/Telephone control: Search_Down_pressed
+2010-10-14 20:25:12.351:  50 04 68 3B 28 2F
+2010-10-14 20:25:12.351:  MFL  --> RAD : Radio/Telephone control: Search_Down_released
+2010-10-14 20:25:12.366:  68 05 73 3D 08 04 2F
+2010-10-14 20:25:12.366:  RAD  --> SDRS: Cmd_0x3D, Data="08 04"
+2010-10-14 20:25:12.382:  73 10 68 3E 02 00 15 14 04 42 4F 53 2D 50 48 4C 20 35
+2010-10-14 20:25:12.382:  SDRS --> RAD : Cmd_0x3E, Data="02 00 15 14 04 42 4F 53 2D 50 48 4C 20"
+2010-10-14 20:25:12.445:  50 04 68 3B 08 0F
+2010-10-14 20:25:12.445:  MFL  --> RAD : Radio/Telephone control: Search_Down_pressed
+2010-10-14 20:25:12.554:  50 04 68 3B 28 2F
+2010-10-14 20:25:12.554:  MFL  --> RAD : Radio/Telephone control: Search_Down_released
+2010-10-14 20:25:12.570:  68 05 73 3D 08 03 28
+2010-10-14 20:25:12.570:  RAD  --> SDRS: Cmd_0x3D, Data="08 03"
+2010-10-14 20:25:12.585:  73 10 68 3E 02 00 12 13 04 42 4F 53 2D 50 48 4C 20 35
+2010-10-14 20:25:12.585:  SDRS --> RAD : Cmd_0x3E, Data="02 00 12 13 04 42 4F 53 2D 50 48 4C 20"
+2010-10-14 20:25:12.632:  50 04 68 3B 08 0F
+2010-10-14 20:25:12.632:  MFL  --> RAD : Radio/Telephone control: Search_Down_pressed
+2010-10-14 20:25:12.726:  50 04 68 3B 28 2F
+2010-10-14 20:25:12.726:  MFL  --> RAD : Radio/Telephone control: Search_Down_released
+2010-10-14 20:25:12.741:  68 05 73 3D 08 02 29
+2010-10-14 20:25:12.741:  RAD  --> SDRS: Cmd_0x3D, Data="08 02"
+2010-10-14 20:25:12.757:  73 10 68 3E 02 00 18 12 04 42 4F 53 2D 50 48 4C 20 3E
+2010-10-14 20:25:12.757:  SDRS --> RAD : Cmd_0x3E, Data="02 00 18 12 04 42 4F 53 2D 50 48 4C 20"
+2010-10-14 20:25:13.476:  80 05 BF 18 00 00 22
+2010-10-14 20:25:13.476:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:13.679:  5B 03 00 87 DF
+2010-10-14 20:25:13.679:  IHKA --> GM  : Aux Heating/Vent status request
+2010-10-14 20:25:13.694:  00 04 BF 86 00 3D
+2010-10-14 20:25:13.694:  GM   --> GLO : Aux Heating/Vent status : All Off
+2010-10-14 20:25:14.132:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:14.132:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:14.194:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:25:14.194:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:25:14.210:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:25:14.210:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:25:15.538:  80 05 BF 18 00 00 22
+2010-10-14 20:25:15.538:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:15.538:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:25:15.538:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:25:15.803:  73 10 68 3E 01 00 18 12 04 4C 69 74 68 69 75 6D 20 52
+2010-10-14 20:25:15.803:  SDRS --> RAD : Cmd_0x3E, Data="01 00 18 12 04 4C 69 74 68 69 75 6D 20"
+2010-10-14 20:25:16.053:  50 04 68 3B 01 06
+2010-10-14 20:25:16.053:  MFL  --> RAD : Radio/Telephone control: Search_Up_pressed
+2010-10-14 20:25:16.178:  50 04 68 3B 21 26
+2010-10-14 20:25:16.178:  MFL  --> RAD : Radio/Telephone control: Search_Up_released
+2010-10-14 20:25:16.194:  68 05 73 3D 08 03 28
+2010-10-14 20:25:16.194:  RAD  --> SDRS: Cmd_0x3D, Data="08 03"
+2010-10-14 20:25:16.209:  73 10 68 3E 02 00 12 13 04 4C 69 74 68 69 75 6D 20 5A
+2010-10-14 20:25:16.209:  SDRS --> RAD : Cmd_0x3E, Data="02 00 12 13 04 4C 69 74 68 69 75 6D 20"
+2010-10-14 20:25:17.131:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:17.131:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:17.584:  80 05 BF 18 00 00 22
+2010-10-14 20:25:17.584:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:18.100:  73 10 68 3E 01 00 12 13 04 53 70 65 63 74 72 75 6D 0A
+2010-10-14 20:25:18.100:  SDRS --> RAD : Cmd_0x3E, Data="01 00 12 13 04 53 70 65 63 74 72 75 6D"
+2010-10-14 20:25:18.631:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:25:18.631:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:25:19.053:  50 04 5B 3A 01 34
+2010-10-14 20:25:19.053:  MFL  --> IHKA: Recirculating air control: AUC_pressed
+2010-10-14 20:25:19.318:  50 04 5B 3A 00 35
+2010-10-14 20:25:19.318:  MFL  --> IHKA: Recirculating air control: AUC_released
+2010-10-14 20:25:19.631:  80 05 BF 18 00 00 22
+2010-10-14 20:25:19.631:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:20.021:  68 03 73 01 19
+2010-10-14 20:25:20.021:  RAD  --> SDRS: Device status request
+2010-10-14 20:25:20.037:  73 04 68 02 00 1D
+2010-10-14 20:25:20.037:  SDRS --> RAD : Device status ready
+2010-10-14 20:25:20.146:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:20.146:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:21.677:  80 05 BF 18 00 00 22
+2010-10-14 20:25:21.677:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:23.146:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:23.146:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:23.724:  80 05 BF 18 00 00 22
+2010-10-14 20:25:23.724:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:24.130:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:25:24.130:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:25:24.208:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:25:24.208:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:25:25.770:  80 05 BF 18 00 00 22
+2010-10-14 20:25:25.770:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:25.770:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:25:25.770:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:25:26.161:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:26.161:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:27.816:  80 05 BF 18 00 00 22
+2010-10-14 20:25:27.816:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:29.144:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:29.144:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:29.863:  80 05 BF 18 00 00 22
+2010-10-14 20:25:29.863:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:30.035:  68 03 73 01 19
+2010-10-14 20:25:30.035:  RAD  --> SDRS: Device status request
+2010-10-14 20:25:30.050:  73 04 68 02 00 1D
+2010-10-14 20:25:30.050:  SDRS --> RAD : Device status ready
+2010-10-14 20:25:31.909:  80 05 BF 18 00 00 22
+2010-10-14 20:25:31.909:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:32.159:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:32.159:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:33.956:  80 05 BF 18 00 00 22
+2010-10-14 20:25:33.956:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:33.987:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:25:33.987:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:25:34.081:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:25:34.081:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:25:34.221:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:25:34.221:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:25:35.159:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:35.159:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:35.612:  3F 03 68 53 07
+2010-10-14 20:25:35.612:  DIA  --> RAD : Read manufacturer data
+2010-10-14 20:25:35.612:  68 08 3F A0 41 00 42 52 77 D9
+2010-10-14 20:25:35.612:  RAD  --> DIA : Diagnostic command acknowledged, Data="41 00 42 52 77"    [A BRw]
+2010-10-14 20:25:35.799:  3F 03 68 0B 5F
+2010-10-14 20:25:35.799:  DIA  --> RAD : Read IO status
+2010-10-14 20:25:35.799:  68 0B 3F A0 75 05 56 30 30 30 31 35 EE
+2010-10-14 20:25:35.799:  RAD  --> DIA : Diagnostic command acknowledged, Data="75 05 56 30 30 30 31 35"    [u V00015]
+2010-10-14 20:25:36.002:  80 05 BF 18 00 00 22
+2010-10-14 20:25:36.002:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:36.018:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:25:36.018:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:25:38.049:  80 05 BF 18 00 00 22
+2010-10-14 20:25:38.049:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:38.174:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:38.174:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:40.033:  68 03 73 01 19
+2010-10-14 20:25:40.033:  RAD  --> SDRS: Device status request
+2010-10-14 20:25:40.033:  73 04 68 02 00 1D
+2010-10-14 20:25:40.033:  SDRS --> RAD : Device status ready
+2010-10-14 20:25:40.111:  80 05 BF 18 00 00 22
+2010-10-14 20:25:40.111:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:41.157:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:41.157:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:42.157:  80 05 BF 18 00 00 22
+2010-10-14 20:25:42.157:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:44.016:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:25:44.016:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:25:44.172:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:44.172:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:44.204:  80 05 BF 18 00 00 22
+2010-10-14 20:25:44.204:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:44.251:  00 06 5B 83 00 00 7E A0
+2010-10-14 20:25:44.251:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:25:46.250:  80 05 BF 18 00 00 22
+2010-10-14 20:25:46.250:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:46.266:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:25:46.266:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:25:47.172:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:47.172:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:47.219:  ! Requesting PDC ID data
+2010-10-14 20:25:47.281:  3F 03 60 00 5C
+2010-10-14 20:25:47.281:  DIA  --> PDC : Read identity
+2010-10-14 20:25:47.656:  3F 03 60 00 5C
+2010-10-14 20:25:47.656:  DIA  --> PDC : Read identity
+2010-10-14 20:25:48.031:  3F 03 60 00 5C
+2010-10-14 20:25:48.031:  DIA  --> PDC : Read identity
+2010-10-14 20:25:48.343:  80 05 BF 18 00 00 22
+2010-10-14 20:25:48.343:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:48.406:  3F 03 60 00 5C
+2010-10-14 20:25:48.406:  DIA  --> PDC : Read identity
+2010-10-14 20:25:48.781:  3F 03 60 00 5C
+2010-10-14 20:25:48.781:  DIA  --> PDC : Read identity
+2010-10-14 20:25:49.093:  ! ERROR: Cmd_Run_Click.CheckResponse
+2010-10-14 20:25:49.093:  ! ERROR: PDC - Error - No response from device (timeout); ;  Check interface connections, and check that the device is switched on
+2010-10-14 20:25:49.093:  ! ERROR: ibus Msg = 
+2010-10-14 20:25:49.359:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:25:49.359:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:25:50.046:  68 03 73 01 19
+2010-10-14 20:25:50.046:  RAD  --> SDRS: Device status request
+2010-10-14 20:25:50.046:  73 04 68 02 00 1D
+2010-10-14 20:25:50.046:  SDRS --> RAD : Device status ready
+2010-10-14 20:25:50.156:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:50.156:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:50.343:  80 05 BF 18 00 00 22
+2010-10-14 20:25:50.343:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:52.390:  80 05 BF 18 00 00 22
+2010-10-14 20:25:52.390:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:53.171:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:53.171:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:53.967:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:25:53.967:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:25:54.249:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:25:54.249:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:25:54.436:  80 05 BF 18 00 00 22
+2010-10-14 20:25:54.436:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:55.795:  !
+2010-10-14 20:25:55.795:  ! Audio scan started
+2010-10-14 20:25:55.811:  ! Scanning device: BMBT
+2010-10-14 20:25:55.889:  3F 03 F0 00 CC
+2010-10-14 20:25:55.889:  DIA  --> BMBT: Read identity
+2010-10-14 20:25:56.201:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:56.201:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:56.264:  3F 03 F0 00 CC
+2010-10-14 20:25:56.264:  DIA  --> BMBT: Read identity
+2010-10-14 20:25:56.514:  80 05 BF 18 00 00 22
+2010-10-14 20:25:56.514:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:56.514:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:25:56.514:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:25:56.639:  3F 03 F0 00 CC
+2010-10-14 20:25:56.639:  DIA  --> BMBT: Read identity
+2010-10-14 20:25:57.014:  3F 03 F0 00 CC
+2010-10-14 20:25:57.014:  DIA  --> BMBT: Read identity
+2010-10-14 20:25:57.389:  3F 03 F0 00 CC
+2010-10-14 20:25:57.389:  DIA  --> BMBT: Read identity
+2010-10-14 20:25:57.763:  80 03 F0 01 72
+2010-10-14 20:25:57.763:  IKE  --> BMBT: Device status request
+2010-10-14 20:25:58.138:  80 03 F0 01 72
+2010-10-14 20:25:58.138:  IKE  --> BMBT: Device status request
+2010-10-14 20:25:58.513:  80 03 F0 01 72
+2010-10-14 20:25:58.513:  IKE  --> BMBT: Device status request
+2010-10-14 20:25:58.576:  80 05 BF 18 00 00 22
+2010-10-14 20:25:58.576:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:25:58.888:  80 03 F0 01 72
+2010-10-14 20:25:58.888:  IKE  --> BMBT: Device status request
+2010-10-14 20:25:59.201:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:25:59.201:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:25:59.263:  80 03 F0 01 72
+2010-10-14 20:25:59.263:  IKE  --> BMBT: Device status request
+2010-10-14 20:25:59.576:  ! Scanning device: FMBT
+2010-10-14 20:25:59.638:  3F 03 47 00 7B
+2010-10-14 20:25:59.638:  DIA  --> FMBT: Read identity
+2010-10-14 20:26:00.013:  3F 03 47 00 7B
+2010-10-14 20:26:00.013:  DIA  --> FMBT: Read identity
+2010-10-14 20:26:00.075:  68 03 73 01 19
+2010-10-14 20:26:00.075:  RAD  --> SDRS: Device status request
+2010-10-14 20:26:00.075:  73 04 68 02 00 1D
+2010-10-14 20:26:00.075:  SDRS --> RAD : Device status ready
+2010-10-14 20:26:00.388:  3F 03 47 00 7B
+2010-10-14 20:26:00.388:  DIA  --> FMBT: Read identity
+2010-10-14 20:26:00.638:  80 05 BF 18 00 00 22
+2010-10-14 20:26:00.638:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:00.763:  3F 03 47 00 7B
+2010-10-14 20:26:00.763:  DIA  --> FMBT: Read identity
+2010-10-14 20:26:01.138:  3F 03 47 00 7B
+2010-10-14 20:26:01.138:  DIA  --> FMBT: Read identity
+2010-10-14 20:26:01.513:  80 03 47 01 C5
+2010-10-14 20:26:01.513:  IKE  --> FMBT: Device status request
+2010-10-14 20:26:01.888:  80 03 47 01 C5
+2010-10-14 20:26:01.888:  IKE  --> FMBT: Device status request
+2010-10-14 20:26:02.200:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:02.200:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:02.263:  80 03 47 01 C5
+2010-10-14 20:26:02.263:  IKE  --> FMBT: Device status request
+2010-10-14 20:26:02.637:  80 03 47 01 C5
+2010-10-14 20:26:02.637:  IKE  --> FMBT: Device status request
+2010-10-14 20:26:02.637:  80 05 BF 18 00 00 22
+2010-10-14 20:26:02.637:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:03.012:  80 03 47 01 C5
+2010-10-14 20:26:03.012:  IKE  --> FMBT: Device status request
+2010-10-14 20:26:03.325:  ! Scanning device: MFL
+2010-10-14 20:26:03.387:  3F 03 50 00 6C
+2010-10-14 20:26:03.387:  DIA  --> MFL : Read identity
+2010-10-14 20:26:03.387:  50 0F 3F A0 86 91 99 08 01 00 11 01 02 04 22 01 72
+2010-10-14 20:26:03.387:  MFL  --> DIA : Diagnostic command acknowledged, Data="86 91 99 08 01 00 11 01 02 04 22 01"    [†‘™       " ]
+2010-10-14 20:26:03.590:  3F 04 50 04 00 6F
+2010-10-14 20:26:03.590:  DIA  --> MFL : Read fault memory: Block 00
+2010-10-14 20:26:03.590:  50 03 3F FF 93
+2010-10-14 20:26:03.590:  MFL  --> DIA : Diagnostic command not acknowledged
+2010-10-14 20:26:03.715:  ! Scanning device: MID
+2010-10-14 20:26:03.778:  3F 03 C0 00 FC
+2010-10-14 20:26:03.778:  DIA  --> MID : Read identity
+2010-10-14 20:26:03.965:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:26:03.965:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:26:04.153:  3F 03 C0 00 FC
+2010-10-14 20:26:04.153:  DIA  --> MID : Read identity
+2010-10-14 20:26:04.278:  00 06 5B 83 00 00 7E A0
+2010-10-14 20:26:04.278:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:26:04.528:  3F 03 C0 00 FC
+2010-10-14 20:26:04.528:  DIA  --> MID : Read identity
+2010-10-14 20:26:04.715:  80 05 BF 18 00 00 22
+2010-10-14 20:26:04.715:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:04.778:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:26:04.778:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:26:04.903:  3F 03 C0 00 FC
+2010-10-14 20:26:04.903:  DIA  --> MID : Read identity
+2010-10-14 20:26:05.215:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:05.215:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:05.278:  3F 03 C0 00 FC
+2010-10-14 20:26:05.278:  DIA  --> MID : Read identity
+2010-10-14 20:26:05.652:  80 03 C0 01 42
+2010-10-14 20:26:05.652:  IKE  --> MID : Device status request
+2010-10-14 20:26:06.027:  80 03 C0 01 42
+2010-10-14 20:26:06.027:  IKE  --> MID : Device status request
+2010-10-14 20:26:06.402:  80 03 C0 01 42
+2010-10-14 20:26:06.402:  IKE  --> MID : Device status request
+2010-10-14 20:26:06.777:  80 05 BF 18 00 03 C0 01 42
+2010-10-14 20:26:06.777:  WARNING: Discarded 9 bytes: [80 05 BF 18 00 03 C0 01 42]
+2010-10-14 20:26:06.777:  80 05 BF 18 00 00 22
+2010-10-14 20:26:06.777:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:06.777:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:26:06.777:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:26:07.152:  80 03 C0 01 42
+2010-10-14 20:26:07.152:  IKE  --> MID : Device status request
+2010-10-14 20:26:07.465:  ! Scanning device: FID
+2010-10-14 20:26:07.527:  3F 03 A0 00 9C
+2010-10-14 20:26:07.527:  DIA  --> FID : Read identity
+2010-10-14 20:26:07.902:  3F 03 A0 00 9C
+2010-10-14 20:26:07.902:  DIA  --> FID : Read identity
+2010-10-14 20:26:08.214:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:08.214:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:08.277:  3F 03 A0 00 9C
+2010-10-14 20:26:08.277:  DIA  --> FID : Read identity
+2010-10-14 20:26:08.652:  3F 03 A0 00 9C
+2010-10-14 20:26:08.652:  DIA  --> FID : Read identity
+2010-10-14 20:26:08.839:  80 05 BF 18 00 00 22
+2010-10-14 20:26:08.839:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:09.027:  3F 03 A0 00 9C
+2010-10-14 20:26:09.027:  DIA  --> FID : Read identity
+2010-10-14 20:26:09.402:  80 03 A0 01 22
+2010-10-14 20:26:09.402:  IKE  --> FID : Device status request
+2010-10-14 20:26:09.777:  80 03 A0 01 22
+2010-10-14 20:26:09.777:  IKE  --> FID : Device status request
+2010-10-14 20:26:10.089:  68 03 73 01 19
+2010-10-14 20:26:10.089:  RAD  --> SDRS: Device status request
+2010-10-14 20:26:10.089:  73 04 68 02 00 1D
+2010-10-14 20:26:10.089:  SDRS --> RAD : Device status ready
+2010-10-14 20:26:10.152:  80 03 A0 01 22
+2010-10-14 20:26:10.152:  IKE  --> FID : Device status request
+2010-10-14 20:26:10.526:  80 03 A0 01 22
+2010-10-14 20:26:10.526:  IKE  --> FID : Device status request
+2010-10-14 20:26:10.839:  80 05 BF 18 00 00 22
+2010-10-14 20:26:10.839:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:10.901:  80 03 A0 01 22
+2010-10-14 20:26:10.901:  IKE  --> FID : Device status request
+2010-10-14 20:26:11.214:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:11.214:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:11.214:  ! Scanning device: IRIS
+2010-10-14 20:26:11.276:  3F 03 E0 00 DC
+2010-10-14 20:26:11.276:  DIA  --> IRIS: Read identity
+2010-10-14 20:26:11.651:  3F 03 E0 00 DC
+2010-10-14 20:26:11.651:  DIA  --> IRIS: Read identity
+2010-10-14 20:26:12.026:  3F 03 E0 00 DC
+2010-10-14 20:26:12.026:  DIA  --> IRIS: Read identity
+2010-10-14 20:26:12.401:  3F 03 E0 00 DC
+2010-10-14 20:26:12.401:  DIA  --> IRIS: Read identity
+2010-10-14 20:26:12.776:  3F 03 E0 00 DC
+2010-10-14 20:26:12.776:  DIA  --> IRIS: Read identity
+2010-10-14 20:26:12.901:  80 05 BF 18 00 00 22
+2010-10-14 20:26:12.901:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:13.151:  80 03 E0 01 62
+2010-10-14 20:26:13.151:  IKE  --> IRIS: Device status request
+2010-10-14 20:26:13.401:  5B 03 00 87 DF
+2010-10-14 20:26:13.401:  IHKA --> GM  : Aux Heating/Vent status request
+2010-10-14 20:26:13.401:  00 04 BF 86 00 3D
+2010-10-14 20:26:13.401:  GM   --> GLO : Aux Heating/Vent status : All Off
+2010-10-14 20:26:13.526:  80 03 E0 01 62
+2010-10-14 20:26:13.526:  IKE  --> IRIS: Device status request
+2010-10-14 20:26:13.901:  80 03 E0 01 62
+2010-10-14 20:26:13.901:  IKE  --> IRIS: Device status request
+2010-10-14 20:26:13.901:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:26:13.901:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:26:14.213:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:14.213:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:14.276:  80 03 E0 01 62
+2010-10-14 20:26:14.276:  IKE  --> IRIS: Device status request
+2010-10-14 20:26:14.276:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:26:14.276:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:26:14.651:  80 03 E0 01 62
+2010-10-14 20:26:14.651:  IKE  --> IRIS: Device status request
+2010-10-14 20:26:14.963:  80 05 BF 18 00 00 22
+2010-10-14 20:26:14.963:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:14.963:  ! Scanning device: GT
+2010-10-14 20:26:15.025:  3F 03 3B 00 07
+2010-10-14 20:26:15.025:  DIA  --> GT  : Read identity
+2010-10-14 20:26:15.400:  3F 03 3B 00 07
+2010-10-14 20:26:15.400:  DIA  --> GT  : Read identity
+2010-10-14 20:26:15.775:  3F 03 3B 00 07
+2010-10-14 20:26:15.775:  DIA  --> GT  : Read identity
+2010-10-14 20:26:16.150:  3F 03 3B 00 07
+2010-10-14 20:26:16.150:  DIA  --> GT  : Read identity
+2010-10-14 20:26:16.525:  3F 03 3B 00 07
+2010-10-14 20:26:16.525:  DIA  --> GT  : Read identity
+2010-10-14 20:26:16.900:  80 03 3B 01 B9
+2010-10-14 20:26:16.900:  IKE  --> GT  : Device status request
+2010-10-14 20:26:17.025:  80 05 BF 18 00 00 22
+2010-10-14 20:26:17.025:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:17.025:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:26:17.025:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:26:17.213:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:17.213:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:17.275:  80 03 3B 01 B9
+2010-10-14 20:26:17.275:  IKE  --> GT  : Device status request
+2010-10-14 20:26:17.650:  80 03 3B 01 B9
+2010-10-14 20:26:17.650:  IKE  --> GT  : Device status request
+2010-10-14 20:26:18.025:  80 03 3B 01 B9
+2010-10-14 20:26:18.025:  IKE  --> GT  : Device status request
+2010-10-14 20:26:18.400:  80 03 3B 01 B9
+2010-10-14 20:26:18.400:  IKE  --> GT  : Device status request
+2010-10-14 20:26:18.712:  ! Scanning device: NAV
+2010-10-14 20:26:18.775:  3F 03 7F 00 43
+2010-10-14 20:26:18.775:  DIA  --> NAV : Read identity
+2010-10-14 20:26:19.025:  80 05 BF 18 00 00 22
+2010-10-14 20:26:19.025:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:19.150:  3F 03 7F 00 43
+2010-10-14 20:26:19.150:  DIA  --> NAV : Read identity
+2010-10-14 20:26:19.525:  3F 03 7F 00 43
+2010-10-14 20:26:19.525:  DIA  --> NAV : Read identity
+2010-10-14 20:26:19.899:  3F 03 7F 00 43
+2010-10-14 20:26:19.899:  DIA  --> NAV : Read identity
+2010-10-14 20:26:20.149:  68 03 73 01 19
+2010-10-14 20:26:20.149:  RAD  --> SDRS: Device status request
+2010-10-14 20:26:20.149:  73 04 68 02 00 1D
+2010-10-14 20:26:20.149:  SDRS --> RAD : Device status ready
+2010-10-14 20:26:20.149:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:26:20.149:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:26:20.212:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:20.212:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:20.274:  3F 03 7F 00 43
+2010-10-14 20:26:20.274:  DIA  --> NAV : Read identity
+2010-10-14 20:26:20.649:  80 03 7F 01 FD
+2010-10-14 20:26:20.649:  IKE  --> NAV : Device status request
+2010-10-14 20:26:21.024:  80 03 7F 01 FD
+2010-10-14 20:26:21.024:  IKE  --> NAV : Device status request
+2010-10-14 20:26:21.087:  80 05 BF 18 00 00 22
+2010-10-14 20:26:21.087:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:21.399:  80 03 7F 01 FD
+2010-10-14 20:26:21.399:  IKE  --> NAV : Device status request
+2010-10-14 20:26:21.774:  80 03 7F 01 FD
+2010-10-14 20:26:21.774:  IKE  --> NAV : Device status request
+2010-10-14 20:26:22.149:  80 03 7F 01 FD
+2010-10-14 20:26:22.149:  IKE  --> NAV : Device status request
+2010-10-14 20:26:22.461:  ! Scanning device: RAD
+2010-10-14 20:26:22.524:  3F 03 68 00 54
+2010-10-14 20:26:22.524:  DIA  --> RAD : Read identity
+2010-10-14 20:26:22.524:  68 11 3F A0 86 94 15 09 45 01 2F 11 18 04 17 46 30 30 DF
+2010-10-14 20:26:22.524:  RAD  --> DIA : Diagnostic command acknowledged, Data="86 94 15 09 45 01 2F 11 18 04 17 46 30 30"    [†”  E /    F00]
+2010-10-14 20:26:22.727:  3F 04 68 04 00 57
+2010-10-14 20:26:22.727:  DIA  --> RAD : Read fault memory: Block 00
+2010-10-14 20:26:22.727:  68 04 3F A0 00 F3
+2010-10-14 20:26:22.727:  RAD  --> DIA : Diagnostic command acknowledged, Data="00"    [ ]
+2010-10-14 20:26:22.852:  ! Scanning device: DSP
+2010-10-14 20:26:22.914:  3F 03 6A 00 56
+2010-10-14 20:26:22.914:  DIA  --> DSP : Read identity
+2010-10-14 20:26:22.914:  6A 0F 3F A0 86 95 90 10 07 00 05 12 28 04 20 17 62
+2010-10-14 20:26:22.914:  DSP  --> DIA : Diagnostic command acknowledged, Data="86 95 90 10 07 00 05 12 28 04 20 17"    [†•     (   ]
+2010-10-14 20:26:23.118:  3F 04 6A 04 00 55
+2010-10-14 20:26:23.118:  DIA  --> DSP : Read fault memory: Block 00
+2010-10-14 20:26:23.118:  6A 03 3F FF A9
+2010-10-14 20:26:23.118:  DSP  --> DIA : Diagnostic command not acknowledged
+2010-10-14 20:26:23.118:  80 05 BF 18 00 00 22
+2010-10-14 20:26:23.118:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:23.243:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:23.243:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:23.243:  ! Scanning device: DSPC
+2010-10-14 20:26:23.321:  3F 03 EA 00 D6
+2010-10-14 20:26:23.321:  DIA  --> DSPC: Read identity
+2010-10-14 20:26:23.696:  3F 03 EA 00 D6
+2010-10-14 20:26:23.696:  DIA  --> DSPC: Read identity
+2010-10-14 20:26:23.883:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:26:23.883:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:26:24.070:  3F 03 EA 00 D6
+2010-10-14 20:26:24.070:  DIA  --> DSPC: Read identity
+2010-10-14 20:26:24.320:  00 06 5B 83 00 00 7E A0
+2010-10-14 20:26:24.320:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:26:24.445:  3F 03 EA 00 D6
+2010-10-14 20:26:24.445:  DIA  --> DSPC: Read identity
+2010-10-14 20:26:24.820:  3F 03 EA 00 D6
+2010-10-14 20:26:24.820:  DIA  --> DSPC: Read identity
+2010-10-14 20:26:25.195:  80 03 EA 01 68
+2010-10-14 20:26:25.195:  IKE  --> DSPC: Device status request
+2010-10-14 20:26:25.195:  80 05 BF 18 00 00 22
+2010-10-14 20:26:25.195:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:25.570:  80 03 EA 01 68
+2010-10-14 20:26:25.570:  IKE  --> DSPC: Device status request
+2010-10-14 20:26:25.945:  80 03 EA 01 68
+2010-10-14 20:26:25.945:  IKE  --> DSPC: Device status request
+2010-10-14 20:26:26.257:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:26.257:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:26.320:  80 03 EA 01 68
+2010-10-14 20:26:26.320:  IKE  --> DSPC: Device status request
+2010-10-14 20:26:26.695:  80 03 EA 01 68
+2010-10-14 20:26:26.695:  IKE  --> DSPC: Device status request
+2010-10-14 20:26:27.007:  ! Scanning device: CDC
+2010-10-14 20:26:27.070:  3F 03 18 00 24
+2010-10-14 20:26:27.070:  DIA  --> CDC : Read identity
+2010-10-14 20:26:27.257:  80 05 BF 18 00 00 22
+2010-10-14 20:26:27.257:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:27.257:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:26:27.257:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:26:27.445:  3F 03 18 00 24
+2010-10-14 20:26:27.445:  DIA  --> CDC : Read identity
+2010-10-14 20:26:27.820:  3F 03 18 00 24
+2010-10-14 20:26:27.820:  DIA  --> CDC : Read identity
+2010-10-14 20:26:28.195:  3F 03 18 00 24
+2010-10-14 20:26:28.195:  DIA  --> CDC : Read identity
+2010-10-14 20:26:28.570:  3F 03 18 00 24
+2010-10-14 20:26:28.570:  DIA  --> CDC : Read identity
+2010-10-14 20:26:28.944:  80 03 18 01 9A
+2010-10-14 20:26:28.944:  IKE  --> CDC : Device status request
+2010-10-14 20:26:29.257:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:29.257:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:29.257:  80 05 BF 18 00 00 22
+2010-10-14 20:26:29.257:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:29.319:  80 03 18 01 9A
+2010-10-14 20:26:29.319:  IKE  --> CDC : Device status request
+2010-10-14 20:26:29.694:  80 03 18 01 9A
+2010-10-14 20:26:29.694:  IKE  --> CDC : Device status request
+2010-10-14 20:26:30.069:  80 03 18 01 9A
+2010-10-14 20:26:30.069:  IKE  --> CDC : Device status request
+2010-10-14 20:26:30.132:  68 03 73 01 19
+2010-10-14 20:26:30.132:  RAD  --> SDRS: Device status request
+2010-10-14 20:26:30.132:  73 04 68 02 00 1D
+2010-10-14 20:26:30.132:  SDRS --> RAD : Device status ready
+2010-10-14 20:26:30.444:  80 03 18 01 9A
+2010-10-14 20:26:30.444:  IKE  --> CDC : Device status request
+2010-10-14 20:26:30.757:  ! Scanning device: CDCD
+2010-10-14 20:26:30.819:  3F 03 76 00 4A
+2010-10-14 20:26:30.819:  DIA  --> CDCD: Read identity
+2010-10-14 20:26:31.194:  3F 03 76 00 4A
+2010-10-14 20:26:31.194:  DIA  --> CDCD: Read identity
+2010-10-14 20:26:31.319:  80 05 BF 18 00 00 22
+2010-10-14 20:26:31.319:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:31.569:  3F 03 76 00 4A
+2010-10-14 20:26:31.569:  DIA  --> CDCD: Read identity
+2010-10-14 20:26:31.944:  3F 03 76 00 4A
+2010-10-14 20:26:31.944:  DIA  --> CDCD: Read identity
+2010-10-14 20:26:32.256:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:32.256:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:32.319:  3F 03 76 00 4A
+2010-10-14 20:26:32.319:  DIA  --> CDCD: Read identity
+2010-10-14 20:26:32.694:  80 03 76 01 F4
+2010-10-14 20:26:32.694:  IKE  --> CDCD: Device status request
+2010-10-14 20:26:33.069:  80 03 76 01 F4
+2010-10-14 20:26:33.069:  IKE  --> CDCD: Device status request
+2010-10-14 20:26:33.381:  80 05 BF 18 00 00 22
+2010-10-14 20:26:33.381:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:33.443:  80 03 76 01 F4
+2010-10-14 20:26:33.443:  IKE  --> CDCD: Device status request
+2010-10-14 20:26:33.818:  3F 3F 5B 06 80 83 00
+2010-10-14 20:26:33.818:  WARNING: Discarded 7 bytes: [3F 3F 5B 06 80 83 00]
+2010-10-14 20:26:33.818:  80 03 76 01 F4
+2010-10-14 20:26:33.818:  IKE  --> CDCD: Device status request
+2010-10-14 20:26:33.818:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:26:33.818:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:26:34.193:  80 03 76 01 F4
+2010-10-14 20:26:34.193:  IKE  --> CDCD: Device status request
+2010-10-14 20:26:34.318:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:26:34.318:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:26:34.506:  ! Scanning device: VID
+2010-10-14 20:26:34.568:  3F 03 ED 00 D1
+2010-10-14 20:26:34.568:  DIA  --> VID : Read identity
+2010-10-14 20:26:34.943:  3F 03 ED 00 D1
+2010-10-14 20:26:34.943:  DIA  --> VID : Read identity
+2010-10-14 20:26:35.256:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:35.256:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:35.318:  3F 03 ED 00 D1
+2010-10-14 20:26:35.318:  DIA  --> VID : Read identity
+2010-10-14 20:26:35.443:  80 05 BF 18 00 00 22
+2010-10-14 20:26:35.443:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:35.506:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:26:35.506:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:26:35.693:  3F 03 ED 00 D1
+2010-10-14 20:26:35.693:  DIA  --> VID : Read identity
+2010-10-14 20:26:36.068:  3F 03 ED 00 D1
+2010-10-14 20:26:36.068:  DIA  --> VID : Read identity
+2010-10-14 20:26:36.443:  80 03 ED 01 6F
+2010-10-14 20:26:36.443:  IKE  --> VID : Device status request
+2010-10-14 20:26:36.818:  80 03 ED 01 6F
+2010-10-14 20:26:36.818:  IKE  --> VID : Device status request
+2010-10-14 20:26:37.193:  80 03 ED 01 6F
+2010-10-14 20:26:37.193:  IKE  --> VID : Device status request
+2010-10-14 20:26:37.443:  80 05 BF 18 00 00 22
+2010-10-14 20:26:37.443:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:37.505:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:26:37.505:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:26:37.568:  80 03 ED 01 6F
+2010-10-14 20:26:37.568:  IKE  --> VID : Device status request
+2010-10-14 20:26:37.943:  80 03 ED 01 6F
+2010-10-14 20:26:37.943:  IKE  --> VID : Device status request
+2010-10-14 20:26:38.255:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:38.255:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:38.255:  ! Scanning device: TEL
+2010-10-14 20:26:38.317:  3F 03 C8 00 F4
+2010-10-14 20:26:38.317:  DIA  --> TEL : Read identity
+2010-10-14 20:26:38.692:  3F 03 C8 00 F4
+2010-10-14 20:26:38.692:  DIA  --> TEL : Read identity
+2010-10-14 20:26:39.067:  3F 03 C8 00 F4
+2010-10-14 20:26:39.067:  DIA  --> TEL : Read identity
+2010-10-14 20:26:39.442:  3F 03 C8 00 F4
+2010-10-14 20:26:39.442:  DIA  --> TEL : Read identity
+2010-10-14 20:26:39.505:  80 05 BF 18 00 00 22
+2010-10-14 20:26:39.505:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:39.817:  3F 03 C8 00 F4
+2010-10-14 20:26:39.817:  DIA  --> TEL : Read identity
+2010-10-14 20:26:40.130:  68 03 73 01 19
+2010-10-14 20:26:40.130:  RAD  --> SDRS: Device status request
+2010-10-14 20:26:40.130:  73 04 68 02 00 1D
+2010-10-14 20:26:40.130:  SDRS --> RAD : Device status ready
+2010-10-14 20:26:40.192:  80 03 C8 01 4A
+2010-10-14 20:26:40.192:  IKE  --> TEL : Device status request
+2010-10-14 20:26:40.567:  80 03 C8 01 4A
+2010-10-14 20:26:40.567:  IKE  --> TEL : Device status request
+2010-10-14 20:26:40.942:  80 03 C8 01 4A
+2010-10-14 20:26:40.942:  IKE  --> TEL : Device status request
+2010-10-14 20:26:41.254:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:41.254:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:41.317:  80 03 C8 01 4A
+2010-10-14 20:26:41.317:  IKE  --> TEL : Device status request
+2010-10-14 20:26:41.567:  80 05 BF 18 00 00 22
+2010-10-14 20:26:41.567:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:41.692:  80 03 C8 01 4A
+2010-10-14 20:26:41.692:  IKE  --> TEL : Device status request
+2010-10-14 20:26:42.020:  ! Scan completed
+2010-10-14 20:26:43.582:  80 05 BF 18 00 00 22
+2010-10-14 20:26:43.582:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:43.723:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:26:43.723:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:26:44.207:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:44.207:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:44.254:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:26:44.254:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:26:45.628:  80 05 BF 18 00 00 22
+2010-10-14 20:26:45.628:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:47.206:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:47.206:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:47.675:  80 05 BF 18 00 00 22
+2010-10-14 20:26:47.675:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:47.675:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:26:47.675:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:26:49.721:  80 05 BF 18 00 00 22
+2010-10-14 20:26:49.721:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:50.112:  68 03 73 01 19
+2010-10-14 20:26:50.112:  RAD  --> SDRS: Device status request
+2010-10-14 20:26:50.112:  73 04 68 02 00 1D
+2010-10-14 20:26:50.112:  SDRS --> RAD : Device status ready
+2010-10-14 20:26:50.206:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:50.206:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:50.830:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:26:50.830:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:26:51.768:  80 05 BF 18 00 00 22
+2010-10-14 20:26:51.768:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:53.221:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:53.221:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:53.658:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:26:53.658:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:26:53.830:  80 05 BF 18 00 00 22
+2010-10-14 20:26:53.830:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:54.283:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:26:54.283:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:26:55.876:  80 05 BF 18 00 00 22
+2010-10-14 20:26:55.876:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:56.220:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:56.220:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:57.923:  80 05 BF 18 00 00 22
+2010-10-14 20:26:57.923:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:26:57.938:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:26:57.938:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:26:59.235:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:26:59.235:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:26:59.969:  80 05 BF 18 00 00 22
+2010-10-14 20:26:59.969:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:00.125:  68 03 73 01 19
+2010-10-14 20:27:00.125:  RAD  --> SDRS: Device status request
+2010-10-14 20:27:00.125:  73 04 68 02 00 1D
+2010-10-14 20:27:00.125:  SDRS --> RAD : Device status ready
+2010-10-14 20:27:02.016:  80 05 BF 18 00 00 22
+2010-10-14 20:27:02.016:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:02.234:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:02.234:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:03.609:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:27:03.609:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:27:04.062:  80 05 BF 18 00 00 22
+2010-10-14 20:27:04.062:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:04.296:  00 06 5B 83 00 00 7E A0
+2010-10-14 20:27:04.296:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:27:05.249:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:05.249:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:06.108:  80 05 BF 18 00 00 22
+2010-10-14 20:27:06.108:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:06.202:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:27:06.202:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:27:08.030:  !
+2010-10-14 20:27:08.108:  80 03 D0 53 00
+2010-10-14 20:27:08.108:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:08.108:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:08.108:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:08.171:  80 05 BF 18 00 00 22
+2010-10-14 20:27:08.171:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:08.233:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:27:08.233:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:27:08.295:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:08.295:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:08.483:  80 03 D0 53 00
+2010-10-14 20:27:08.483:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:08.483:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:08.483:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:08.858:  80 03 D0 53 00
+2010-10-14 20:27:08.858:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:08.858:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:08.858:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:09.233:  80 03 D0 53 00
+2010-10-14 20:27:09.233:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:09.233:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:09.233:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:09.608:  80 03 D0 53 00
+2010-10-14 20:27:09.608:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:09.608:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:09.608:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:09.983:  3F 04 D0 02 02 EB
+2010-10-14 20:27:09.983:  DIA  --> LCM : Read AIS: Block 02
+2010-10-14 20:27:09.983:  00 03 3F B0 8C
+2010-10-14 20:27:09.983:  GM   --> DIA : Diagnostic parameter error
+2010-10-14 20:27:10.170:  68 03 73 01 19
+2010-10-14 20:27:10.170:  RAD  --> SDRS: Device status request
+2010-10-14 20:27:10.170:  73 04 68 02 00 1D
+2010-10-14 20:27:10.170:  SDRS --> RAD : Device status ready
+2010-10-14 20:27:10.233:  80 05 BF 18 00 00 22
+2010-10-14 20:27:10.233:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:10.358:  3F 04 D0 02 02 EB
+2010-10-14 20:27:10.358:  DIA  --> LCM : Read AIS: Block 02
+2010-10-14 20:27:10.358:  00 03 3F B0 8C
+2010-10-14 20:27:10.358:  GM   --> DIA : Diagnostic parameter error
+2010-10-14 20:27:10.732:  3F 04 D0 02 02 EB
+2010-10-14 20:27:10.732:  DIA  --> LCM : Read AIS: Block 02
+2010-10-14 20:27:10.732:  00 03 3F B0 8C
+2010-10-14 20:27:10.732:  GM   --> DIA : Diagnostic parameter error
+2010-10-14 20:27:11.107:  3F 04 D0 02 02 EB
+2010-10-14 20:27:11.107:  DIA  --> LCM : Read AIS: Block 02
+2010-10-14 20:27:11.107:  00 03 3F B0 8C
+2010-10-14 20:27:11.107:  GM   --> DIA : Diagnostic parameter error
+2010-10-14 20:27:11.295:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:11.295:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:11.482:  3F 04 D0 02 02 EB
+2010-10-14 20:27:11.482:  DIA  --> LCM : Read AIS: Block 02
+2010-10-14 20:27:11.482:  00 03 3F B0 8C
+2010-10-14 20:27:11.482:  GM   --> DIA : Diagnostic parameter error
+2010-10-14 20:27:11.857:  3F 06 3B 08 00 04 07 09
+2010-10-14 20:27:11.857:  DIA  --> GT  : Read coding data: Block 00, Offset 04, Length 07
+2010-10-14 20:27:12.232:  3F 06 3B 08 00 04 07 09
+2010-10-14 20:27:12.232:  DIA  --> GT  : Read coding data: Block 00, Offset 04, Length 07
+2010-10-14 20:27:12.295:  80 05 BF 18 00 00 22
+2010-10-14 20:27:12.295:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:12.607:  3F 06 3B 08 00 04 07 09
+2010-10-14 20:27:12.607:  DIA  --> GT  : Read coding data: Block 00, Offset 04, Length 07
+2010-10-14 20:27:12.982:  3F 06 3B 08 00 04 07 09
+2010-10-14 20:27:12.982:  DIA  --> GT  : Read coding data: Block 00, Offset 04, Length 07
+2010-10-14 20:27:13.107:  5B 03 00 87 DF
+2010-10-14 20:27:13.107:  IHKA --> GM  : Aux Heating/Vent status request
+2010-10-14 20:27:13.107:  00 04 BF 86 00 3D
+2010-10-14 20:27:13.107:  GM   --> GLO : Aux Heating/Vent status : All Off
+2010-10-14 20:27:13.357:  3F 06 3B 08 00 04 07 09
+2010-10-14 20:27:13.357:  DIA  --> GT  : Read coding data: Block 00, Offset 04, Length 07
+2010-10-14 20:27:13.607:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:27:13.607:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:27:13.685:  ! Scan completed
+2010-10-14 20:27:14.247:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:14.247:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:14.294:  80 05 BF 18 00 00 22
+2010-10-14 20:27:14.294:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:14.310:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:27:14.310:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:27:16.341:  80 05 BF 18 00 00 22
+2010-10-14 20:27:16.341:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:17.247:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:17.247:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:18.387:  80 05 BF 18 00 00 22
+2010-10-14 20:27:18.387:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:18.403:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:27:18.403:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:27:20.137:  68 03 73 01 19
+2010-10-14 20:27:20.137:  RAD  --> SDRS: Device status request
+2010-10-14 20:27:20.152:  73 04 68 02 00 1D
+2010-10-14 20:27:20.152:  SDRS --> RAD : Device status ready
+2010-10-14 20:27:20.262:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:20.262:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:20.434:  80 05 BF 18 00 00 22
+2010-10-14 20:27:20.434:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:21.574:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:27:21.574:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:27:22.449:  !
+2010-10-14 20:27:22.543:  3F 3F 80 05 BF
+2010-10-14 20:27:22.543:  WARNING: Discarded 5 bytes: [3F 3F 80 05 BF]
+2010-10-14 20:27:22.543:  80 03 D0 53 00
+2010-10-14 20:27:22.543:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:22.543:  80 05 BF 18 00 00 22
+2010-10-14 20:27:22.543:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:22.918:  80 03 D0 53 00
+2010-10-14 20:27:22.918:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:22.918:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:22.918:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:23.292:  80 03 D0 53 00
+2010-10-14 20:27:23.292:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:23.292:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:23.292:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:23.292:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:23.292:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:23.542:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:27:23.542:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:27:23.667:  80 03 D0 53 00
+2010-10-14 20:27:23.667:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:23.667:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:23.667:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:24.042:  80 03 D0 53 00
+2010-10-14 20:27:24.042:  IKE  --> LCM : Vehicle data request
+2010-10-14 20:27:24.042:  00 10 80 54 54 44 88 65 90 06 59 06 86 04 00 01 20 53
+2010-10-14 20:27:24.042:  GM   --> IKE : Vehicle data status: VIN TD88659; Total dist 162500 kms; SI-L 16700 litres since last service; ; SI-T 1024 days since last service
+2010-10-14 20:27:24.355:  ! Scan completed
+2010-10-14 20:27:24.355:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:27:24.355:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:27:24.542:  80 05 BF 18 00 00 22
+2010-10-14 20:27:24.542:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:26.276:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:26.276:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:26.589:  80 05 BF 18 00 00 22
+2010-10-14 20:27:26.589:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:28.635:  80 05 BF 18 00 00 22
+2010-10-14 20:27:28.635:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:28.651:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:27:28.651:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:27:29.291:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:29.291:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:30.151:  68 03 73 01 19
+2010-10-14 20:27:30.151:  RAD  --> SDRS: Device status request
+2010-10-14 20:27:30.166:  73 04 68 02 00 1D
+2010-10-14 20:27:30.166:  SDRS --> RAD : Device status ready
+2010-10-14 20:27:30.682:  80 05 BF 18 00 00 22
+2010-10-14 20:27:30.682:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:32.275:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:32.275:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:32.728:  80 05 BF 18 00 00 22
+2010-10-14 20:27:32.728:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:33.447:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:27:33.447:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:27:34.337:  00 06 5B 83 00 00 7E A0
+2010-10-14 20:27:34.337:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:27:34.775:  80 05 BF 18 00 00 22
+2010-10-14 20:27:34.775:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:35.290:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:35.290:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:36.821:  80 05 BF 18 00 00 22
+2010-10-14 20:27:36.821:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:36.946:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:27:36.946:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:27:38.290:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:38.290:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:38.868:  80 05 BF 18 00 00 22
+2010-10-14 20:27:38.868:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:38.883:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:27:38.883:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:27:40.164:  68 03 73 01 19
+2010-10-14 20:27:40.164:  RAD  --> SDRS: Device status request
+2010-10-14 20:27:40.180:  73 04 68 02 00 1D
+2010-10-14 20:27:40.180:  SDRS --> RAD : Device status ready
+2010-10-14 20:27:40.914:  80 05 BF 18 00 00 22
+2010-10-14 20:27:40.914:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:41.289:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:41.289:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:42.289:  44 03 80 16 D1
+2010-10-14 20:27:42.289:  EWS  --> IKE : Odometer request
+2010-10-14 20:27:42.320:  80 0A BF 17 E9 7A 02 00 CC 40 00 3F
+2010-10-14 20:27:42.320:  IKE  --> GLO : Odometer: 162,537 km
+2010-10-14 20:27:42.960:  80 05 BF 18 00 00 22
+2010-10-14 20:27:42.960:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:43.398:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:27:43.398:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:27:44.288:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:44.288:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:44.366:  00 06 5B 83 00 00 7E A0
+2010-10-14 20:27:44.366:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:27:45.007:  80 05 BF 18 00 00 22
+2010-10-14 20:27:45.007:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:47.053:  80 05 BF 18 00 00 22
+2010-10-14 20:27:47.053:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:47.303:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:47.303:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:49.100:  80 05 BF 18 00 00 22
+2010-10-14 20:27:49.100:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:49.115:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:27:49.115:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:27:50.178:  68 03 73 01 19
+2010-10-14 20:27:50.178:  RAD  --> SDRS: Device status request
+2010-10-14 20:27:50.178:  73 04 68 02 00 1D
+2010-10-14 20:27:50.178:  SDRS --> RAD : Device status ready
+2010-10-14 20:27:50.303:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:50.303:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:51.146:  80 05 BF 18 00 00 22
+2010-10-14 20:27:51.146:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:52.302:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:27:52.302:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:27:53.193:  80 05 BF 18 00 00 22
+2010-10-14 20:27:53.193:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:53.287:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:53.287:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:53.333:  5B 06 80 83 00 08 7E 28
+2010-10-14 20:27:53.333:  IHKA --> IKE : Air conditioning compressor status: 
+2010-10-14 20:27:54.364:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:27:54.364:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:27:55.239:  80 05 BF 18 00 00 22
+2010-10-14 20:27:55.239:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:56.302:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:56.302:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:57.286:  80 05 BF 18 00 00 22
+2010-10-14 20:27:57.286:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:59.301:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:27:59.301:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:27:59.332:  80 05 BF 18 00 00 22
+2010-10-14 20:27:59.332:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:27:59.348:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:27:59.348:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:28:00.191:  68 03 73 01 19
+2010-10-14 20:28:00.191:  RAD  --> SDRS: Device status request
+2010-10-14 20:28:00.191:  73 04 68 02 00 1D
+2010-10-14 20:28:00.191:  SDRS --> RAD : Device status ready
+2010-10-14 20:28:01.394:  80 05 BF 18 00 00 22
+2010-10-14 20:28:01.394:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:28:02.300:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:28:02.300:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:28:03.285:  5B 06 80 83 00 00 7E 20
+2010-10-14 20:28:03.285:  IHKA --> IKE : Air conditioning compressor status:  Off
+2010-10-14 20:28:03.441:  80 05 BF 18 00 00 22
+2010-10-14 20:28:03.441:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:28:04.362:  00 06 5B 83 00 00 7F A1
+2010-10-14 20:28:04.362:  GM   --> IHKA: Air conditioning compressor status:  Off
+2010-10-14 20:28:05.284:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:28:05.284:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:28:05.503:  80 05 BF 18 00 00 22
+2010-10-14 20:28:05.503:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:28:07.549:  80 05 BF 18 00 00 22
+2010-10-14 20:28:07.549:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:28:07.674:  80 07 BF 5C FF 3F FF 00 5B
+2010-10-14 20:28:07.674:  IKE  --> GLO : Light dimmer: Data="FF 3F FF 00"
+2010-10-14 20:28:08.299:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:28:08.299:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:28:09.596:  80 05 BF 18 00 00 22
+2010-10-14 20:28:09.596:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:28:09.596:  80 06 BF 19 0E 0E 00 20
+2010-10-14 20:28:09.596:  IKE  --> GLO : Temperature: Outside 14°C, Coolant 14°C
+2010-10-14 20:28:10.205:  68 03 73 01 19
+2010-10-14 20:28:10.205:  RAD  --> SDRS: Device status request
+2010-10-14 20:28:10.205:  73 04 68 02 00 1D
+2010-10-14 20:28:10.205:  SDRS --> RAD : Device status ready
+2010-10-14 20:28:11.299:  D0 07 BF 5B 00 00 00 00 33
+2010-10-14 20:28:11.299:  LCM  --> GLO : Lamp status: All_Off  All_OK
+2010-10-14 20:28:11.642:  80 05 BF 18 00 00 22
+2010-10-14 20:28:11.642:  IKE  --> GLO : Speed/RPM: Speed 0 km/h, 0 RPM
+2010-10-14 20:28:11.986:  ! NavCoder logging stopped, NavCoder closed
+2010-10-14 20:28:11.986:  !

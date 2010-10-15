@@ -1,0 +1,88 @@
+Analysis of NavCoder logs captured on 14 October 2010 of a 2004 MINI Cooper S
+(R53) with factory head unit, Harmon/Kardon, and Sirius receiver.
+
+Thanks to Josh Wardell for donating his car, and for sacrificing the wires on
+his custom IBus circuit.  For science!
+
+preset 0 == no preset selected
+
+73 .. 68 3E 00 00 1A 11 04
+73 .. 68 3E 00 00 95 20 04
+    responses to <3D 01 00> ("deactivate" (power/mode)); (sent twice)
+    not sure why different? maybe when key turned off?
+    
+73 .. 68 3E 01
+    text update
+    
+    <3E 01 00> possibly out-of-band for channel name update; no change in 
+    tuning info when chan name changes, but text changes.
+    
+    probable reply-to for
+        3D 0E 00 (inf1)        => <3E 01 06>
+            chan unchanged; preset bank goes to 0, preset num to 1
+        
+        3D 0F 00 (inf2)        => <3E 01 07>
+            chan unchanged; preset bank goes to 0, preset num to 1
+        
+        3D 14 00 (ESN)         => <3E 01 0C>
+            always set chan: 48, preset bank: 3, preset: 0
+        
+        3D 09 ** (set preset)  => <3E 01 01>
+            odd place for this. only tested with preset 1; assuming <3E 01 01>
+            doesn't change, tho
+            
+            channel goes to 0; preset info as set?
+    
+    infrequently acts as a reply to <3E 02> ('now')
+        
+73 .. 68 3E 02
+    sends tuning info (channel number, name, preset info) in response to many
+    other commands. text is often stale, but other fields appear to be 
+    current state.
+    
+    often see two of these, identical; doesn't seem to be consistent, tho. bug
+    in SDRS?
+    
+    looks like if I get another command within 250ms I can ignore this.
+    
+    probable explicit reply-to for
+        3D 02 00 ('now') -- often (usually? always?) sent jjj
+    
+    ACK for
+        3D 08 ** (preset recall)
+        3D 03 00 (channel up)
+        3D 15 00 (SAT (preset bank change))
+        
+73 .. 68 3E 03
+    probable reply-to for
+        3D 04 00 (channel down)
+    
+    sent instead of sending <3E 02> reply, as is common for other commands
+    
+
+73 .. 68 3E 04
+    probable reply-to for
+        3D 05 00 (hold channel up)
+    
+    send w/ channel increment until <3E 02> ('now') is sent.
+    observed approx. every 200ms, which may be suggested timing, or time
+    required to tune to new channel. @todo
+    
+73 .. 68 3E 05
+    probable reply-to for
+        3D 06 00 (hold channel down)
+    
+    see notes above for <3E 04>
+    
+73 .. 68 3E 11, 73 .. 68 3E 12
+    probable reply-tos for
+        3D 07 00 (hold "M", initiate scan)
+    
+    <3E 12> followed by <3E 11>
+    Looks like <3E 12> is the channel that's being tuned to, followed by 
+    <3E 11> once a lock has been achieved.  Just like <3E 02> and <3E 01>.
+    Looks like I can & ("and") with 0x10 to test if scan is enabled.
+    
+    Channel increments with every update.
+    
+    <3E 02> ("now") cancels scan.
