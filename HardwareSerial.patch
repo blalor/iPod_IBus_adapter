@@ -34,11 +34,11 @@
 +}
 +
 +/**
-+    Removes offset number of bytes from the buffer.
++    Removes count number of bytes from the buffer.
 +**/
-+void HardwareSerial::remove(uint8_t offset) {
++void HardwareSerial::remove(uint8_t count) {
 +    if (_rx_buffer->head != _rx_buffer->tail) {
-+        _rx_buffer->tail = (_rx_buffer->tail + offset) % RX_BUFFER_SIZE;
++        _rx_buffer->tail = (_rx_buffer->tail + count) % RX_BUFFER_SIZE;
 +    }
 +}
 +
