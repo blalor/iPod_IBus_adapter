@@ -26,8 +26,8 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 #define CONSOLE_RX_PIN  3
 #define CONSOLE_TX_PIN  4
 
-#define IPOD_RX_PIN    18
-#define IPOD_TX_PIN    19
+#define IPOD_RX_PIN    19 // 28 on chip
+#define IPOD_TX_PIN    18 // 27 on chip
 
 #define LED_GRN 8
 #define LED_YEL 7
@@ -54,8 +54,8 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 #define SDRS_CMD_PRESET         0x08 // preset selected
 #define SDRS_CMD_PRESET_HOLD    0x09 // preset held
 #define SDRS_CMD_M              0x0D // "m"
-#define SDRS_CMD_INF1           0x0E // INF 1st press
-#define SDRS_CMD_INF2           0x0F // INF 2nd press
+#define SDRS_CMD_INF1           0x0E // INF 1st press; display artist
+#define SDRS_CMD_INF2           0x0F // INF 2nd press; display song
 #define SDRS_CMD_SAT_HOLD       0x14 // SAT press and hold
 #define SDRS_CMD_SAT            0x15 // SAT press
 
@@ -66,20 +66,21 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 // byte in a packet, but it looks like this is the biggest we'll see in
 // practice.  Use this as a sort of heuristic to determine if the incoming
 // data is valid.
-#define MAX_EXPECTED_LEN 10
+#define MAX_EXPECTED_LEN 64
 
 #define TX_BUF_LEN 128
 #define RX_BUF_LEN (MAX_EXPECTED_LEN + 2)
 
 /*
-prescale	target timer count	rounded timer count		 (D)	(E)	% diff
-       1	         11110.111	              11110		1440	1440.014400144	-0.00100001000009797
-       8	          1387.888	               1388		1440	1439.88480921526	0.00799936005120117
-      32	           346.222	                346		1440	1440.92219020173	-0.0640409862311913
-      64	           172.611	                173		1440	1436.7816091954	0.223499361430385
-     128	            85.805	                 86		1440	1436.7816091954	0.223499361430385
-     256	            42.402	                 42		1440	1453.48837209302	-0.936692506459949
-    1024	             9.850	                 10		1440	1420.45454545455	1.35732323232322
+prescale    target timer count  rounded timer count       (D)    (E)          % diff
+       1             11110.111                11110     1440    1440.0144    -0.0010
+       8              1387.888                 1388     1440    1439.8848     0.0079
+      32               346.222                  346     1440    1440.9221    -0.0640
+      64               172.611                  173     1440    1436.7816     0.2234
+     128                85.805                   86     1440    1436.7816     0.2234
+     256                42.402                   42     1440    1453.4883    -0.9366
+    1024                 9.850                   10     1440    1420.4545     1.3573
+    
 target timer count=((16000000/A2)/(960*1.5))-1
 rounded timer count=ROUND(target timer count '1', 0)
 (D)=(16000000/A2)/(target timer count '1'+1)
@@ -109,6 +110,8 @@ SatState satelliteState = {1, 1, 0, false};
 
 // timestamp of last poll from radio
 unsigned long lastPoll;
+
+unsigned long nextTestText;
 
 // trigger time to turn off LED
 unsigned long ledOffTime;
@@ -172,6 +175,7 @@ void setup() {
     simpleRemote.setup();
      
     announcement_sent = false;
+    nextTestText = millis() + 5000L;
     
     // set up serial for IBus; 9600,8,E,1
     Serial.begin(9600);
@@ -230,10 +234,29 @@ void loop() {
         */
         if ((lastPoll + 20000L) < millis()) {
             DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
+            digitalWrite(LED_RED, HIGH);
             send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
             lastPoll = millis();
         }
-    
+        
+        if (millis() >= nextTestText) {
+            unsigned long now = millis();
+            unsigned long seconds = now / 1000L;
+            unsigned long minutes = seconds / 60L;
+            
+            snprintf_P(global_text_data, 10, PSTR("%lu:%02lu.%03lu"), minutes, seconds % 60L, now % 1000L);
+            
+            if (satelliteState.active) {
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x00..\x04"),
+                            // "........",
+                            global_text_data,
+                            true);
+            }
+            
+            nextTestText = millis() + 5000L;
+        }
+        
         process_incoming_data();
     }
 }
@@ -300,7 +323,7 @@ boolean process_incoming_data() {
     // I don't like this solution at all, but until I can implement a timer to 
     // reset in the RX interrupt I think this will at least avoid getting 
     // stuck waiting for enough data to arrive
-    if (bytes_availble && (Serial.peek(PKT_SRC) != RAD_ADDR)) {
+    if (bytes_availble && (Serial.peek(PKT_SRC) != RAD_ADDR) && (Serial.peek(PKT_SRC) != SDRS_ADDR)) {
         DEBUG_PGM_PRINTLN("dropping byte from unknown source");
         Serial.remove(1);
     }
@@ -367,21 +390,21 @@ boolean process_incoming_data() {
                     
                     // valid checksum
 
-                    #if DEBUG && DEBUG_PACKET_PARSING
-                        DEBUG_PGM_PRINT("[pkt] received ");
+                    #if DEBUG
+                        DEBUG_PGM_PRINT("received pkt ");
                     #endif
 
                     // read packet into buffer and dispatch
                     for (int i = 0; i < pkt_len; i++) {
                         rx_buf[i] = Serial.read();
 
-                        #if DEBUG && DEBUG_PACKET_PARSING
+                        #if DEBUG
                             DEBUG_PRINT(rx_buf[i], HEX);
                             DEBUG_PGM_PRINT(" ");
                         #endif
                     }
 
-                    #if DEBUG && DEBUG_PACKET_PARSING
+                    #if DEBUG
                         DEBUG_PRINTLN();
                     #endif
                     
@@ -404,12 +427,17 @@ boolean process_incoming_data() {
                 // haven't shown up in the expected time.
                 
                 if (readTimeout == 0) {
-                    // 0.83ms/byte
-                    readTimeout = ((83 * (pkt_len - bytes_availble)) / 100);
-                    DEBUG_PGM_PRINT("read timeout: ");
-                    DEBUG_PRINTLN(readTimeout, DEC);
+                    // (10 bits/byte) => 1.042ms/byte; add a 20% fudge factor
+                    readTimeout = ((125 * ((pkt_len - bytes_availble) + 1)) / 100);
+                    
+                    #if DEBUG && DEBUG_PACKET_PARSING
+                        DEBUG_PGM_PRINT("read timeout: ");
+                        DEBUG_PRINTLN(readTimeout, DEC);
+                    #endif
+                    
                     readTimeout += millis();
-                } else if (millis() > readTimeout) {
+                }
+                else if (millis() > readTimeout) {
                     DEBUG_PGM_PRINTLN("dropping packet due to read timeout");
                     readTimeout = 0;
                     Serial.remove(1);
@@ -470,35 +498,36 @@ void dispatch_packet(const uint8_t *packet) {
                     // radio's off and we shouldn't be doing anything.
                     DEBUG_PGM_PRINT("got power command, ");
                     DEBUG_PRINTLN(packet[5], HEX);
+                    
                     // fall through
                 
                 case SDRS_CMD_MODE:
                     // sent when the mode on the radio is changed away from
                     // SIRIUS, and when the radio is turned off while SIRIUS
                     // is active.
-                    DEBUG_PGM_PRINT("got mode command, ");
+                    DEBUG_PGM_PRINT("[cmd] got mode command, ");
                     DEBUG_PRINTLN(packet[5], HEX);
+                
+                    set_state_inactive();
                     
                     DEBUG_PGM_PRINTLN("responding to mode command");
                     send_packet(SDRS_ADDR, RAD_ADDR,
                                 ibus_data("\x3E\x00\x00..\x04"),
                                 NULL, true);
                     
-                    // pause the iPod if we're transitioning to inactive
-                    if (satelliteState.active) {
-                        simpleRemote.sendJustPause();
-                        simpleRemote.sendButtonReleased();
-                    }
-                    
-                    satelliteState.active = false;
                     break;
-                    
+            
                 case SDRS_CMD_CHAN_UP:
                 case SDRS_CMD_CHAN_DOWN:
                 case SDRS_CMD_CHAN_UP_HOLD:
                 case SDRS_CMD_CHAN_DOWN_HOLD:
                 case SDRS_CMD_PRESET:
                 case SDRS_CMD_PRESET_HOLD:
+                    DEBUG_PGM_PRINT("[cmd] got nav command, ");
+                    DEBUG_PRINT(packet[4], HEX);
+                    DEBUG_PGM_PRINT(" ");
+                    DEBUG_PRINTLN(packet[5], HEX);
+                    
                     handle_buttons(packet[4], packet[5]);
                     
                     // a little something for the display
@@ -506,7 +535,7 @@ void dispatch_packet(const uint8_t *packet) {
                     send_packet(SDRS_ADDR, RAD_ADDR,
                                 ibus_data("\x3E\x01\x00..\x04"),
                                 "Yo.", true);
-                    
+                    delay(50);
                     // fall through!
 
                 case SDRS_CMD_NOW:
@@ -515,19 +544,9 @@ void dispatch_packet(const uint8_t *packet) {
                     // periodically if we don't respond quickly enough with an
                     // updated display command (3D 01 00 …)
                     DEBUG_PGM_PRINTLN("got \"now\"");
-                    
-                    // if we're transitioning to "on", wake up the iPod and
-                    // start playing
-                    if (! satelliteState.active) {
-                        simpleRemote.sendiPodOn();
-                        delay(50);
-                        simpleRemote.sendButtonReleased();
-                        
-                        simpleRemote.sendJustPlay();
-                        simpleRemote.sendButtonReleased();
-                    }
-                    
-                    satelliteState.active = true;
+                
+                    set_state_active();
+                    // fall through!
                 
                 case SDRS_CMD_SAT:
                     DEBUG_PGM_PRINTLN("got sat press");
@@ -536,7 +555,7 @@ void dispatch_packet(const uint8_t *packet) {
                                 NULL, true);
                     
                     if (packet[4] == SDRS_CMD_NOW) {
-                        delay(10);
+                        delay(50);
                         // a little something for the display
                         DEBUG_PGM_PRINTLN("sending text for \"now\"");
                         snprintf_P(global_text_data, 10, PSTR("chan %3d!"), satelliteState.channel);
@@ -554,7 +573,7 @@ void dispatch_packet(const uint8_t *packet) {
                     // this text actually shows! (kind of; chopped 1st char,
                     // garbled last));
                      send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x01\x06..\x01dummy1"),
+                                ibus_data("\x3E\x01\x06..\x01dummy1.0 dummy1.1 dummy1.2"),
                                 NULL, true);
                     break;
                 
@@ -563,7 +582,7 @@ void dispatch_packet(const uint8_t *packet) {
                 
                     // @todo reconcile this with dbroome's code
                     send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x01\x07..\x01dummy2"),
+                                ibus_data("\x3E\x01\x07..\x01dummy2.0 dummy2.1 dummy2.2"),
                                 NULL, true);
                     break;
                 
@@ -580,6 +599,11 @@ void dispatch_packet(const uint8_t *packet) {
             }
         }
     }
+    #if DEBUG && DEBUG_PACKET_PARSING
+        else if (packet[PKT_SRC] == SDRS_ADDR) {
+            DEBUG_PGM_PRINTLN("ignoring packet from myself");
+        }
+    #endif
 }
 // }}}
 
@@ -615,6 +639,7 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
         
         case 0x09: // — preset button press and hold
             // data byte 2 is preset number (0x01, 0x02, … 0x06)
+            break;
         
         default:
             break;
@@ -649,7 +674,7 @@ void send_packet(uint8_t src,
     // length of pgm_data
     size_t pgm_data_len = 0;
     
-    // add length of text data (the display only shows 8 chars…)
+    // add length of text data (the display only shows 8 chars [sometimes]…)
     size_t text_len = 0;
 
     // length of text and pgm data
@@ -670,6 +695,11 @@ void send_packet(uint8_t src,
         DEBUG_PRINTLN(pgm_data_len, DEC);
     #endif
     
+    if (pgm_data_len > TX_BUF_LEN) {
+        DEBUG_PGM_PRINT("pgm_data_len > TX_BUF_LEN");
+        return;
+    }
+    
     if (text != NULL) {
         text_len = strlen(text);
     //     DEBUG_PRINT(text);
@@ -680,6 +710,13 @@ void send_packet(uint8_t src,
     }
     
     data_len = pgm_data_len + text_len;
+    if (data_len > TX_BUF_LEN) {
+        DEBUG_PGM_PRINT("trimming text to fit with pgm data in TX_BUF_LEN bytes");
+        text_len -= (data_len - (TX_BUF_LEN + 1)); // @todo I suck at index math; do I need the +1?
+
+        data_len = pgm_data_len + text_len;
+    } 
+    
     #if WICKED_VERBOSE
         DEBUG_PGM_PRINT("data_len: ");
         DEBUG_PRINTLN(data_len, DEC);
@@ -716,14 +753,23 @@ void send_packet(uint8_t src,
     
     // append text
     if (text != NULL) {
-        DEBUG_PGM_PRINT("text: ");
+        #if DEBUG && DEBUG_PACKET_PARSING
+            DEBUG_PGM_PRINT("text: '");
+            DEBUG_PRINT(text);
+            DEBUG_PGM_PRINT("'");
+        #endif
+        
         for (uint8_t i = 0; i < text_len; i++) {
             data[pgm_data_len + i] = text[i];
-            DEBUG_PRINT(data[pgm_data_len + i], HEX);
-            DEBUG_PGM_PRINT(" ");
+            
+            #if DEBUG && DEBUG_PACKET_PARSING
+                DEBUG_PGM_PRINT(" ");
+                DEBUG_PRINT(data[pgm_data_len + i], HEX);
+            #endif
         }
-        DEBUG_PRINTLN();
-        // memcpy((void *)&data[pgm_data_len], (void *)&text, text_len);
+        #if DEBUG && DEBUG_PACKET_PARSING
+            DEBUG_PRINTLN();
+        #endif
     }
     
     // add space for dest and checksum bytes
@@ -765,7 +811,7 @@ void send_packet(uint8_t src,
         // calculate checksum, which goes immediately after the last data byte
         tx_buf[tx_ind++] = calc_checksum(&tx_buf[tmp_ind], tx_ind - tmp_ind);
         
-        #if DEBUG && DEBUG_PACKET_PARSING
+        #if DEBUG /* && DEBUG_PACKET_PARSING */
             DEBUG_PGM_PRINT("packet to send: ");
             for (int i = 0; i < tx_ind; i++) {
                 DEBUG_PRINT((uint8_t) tx_buf[i], HEX);
@@ -774,7 +820,6 @@ void send_packet(uint8_t src,
             DEBUG_PRINTLN();
         #endif
 
-        
         digitalWrite(LED_GRN, HIGH);
         ledOffTime = millis() + 500L;
         
@@ -818,17 +863,17 @@ void send_packet(uint8_t src,
             else {
                 digitalWrite(LED_RED, LOW);
             
-                disableSerialReceive();
-                Serial.flush();
+                // disableSerialReceive();
+                // Serial.flush();
             
                 for (int i = 0; i < tx_ind; i++) {
                     Serial.write((uint8_t) tx_buf[i]);
                 }
 
-                enableSerialReceive();
+                // enableSerialReceive();
 
                 #if DEBUG && DEBUG_PACKET_PARSING
-                    DEBUG_PGM_PRINTLN("done sending");
+                    DEBUG_PGM_PRINTLN("[pkt] done sending");
                 #endif
 
                 tx_ind = 0;
@@ -857,3 +902,33 @@ int calc_checksum(int *buf, uint8_t buf_len) {
     return checksum;
 }
 // }}}
+
+// {{{ set_state_active
+void set_state_active() {
+    // if we're transitioning to "on", wake up the iPod and
+    // start playing
+    if (! satelliteState.active) {
+        simpleRemote.sendiPodOn();
+        delay(50);
+        simpleRemote.sendButtonReleased();
+        
+        simpleRemote.sendJustPlay();
+        simpleRemote.sendButtonReleased();
+    }
+    
+    satelliteState.active = true;
+}
+// }}}
+
+// {{{ set_state_inactive
+void set_state_inactive() {
+    // pause the iPod if we're transitioning to inactive
+    if (satelliteState.active) {
+        simpleRemote.sendJustPause();
+        simpleRemote.sendButtonReleased();
+    }
+    
+    satelliteState.active = false;
+}
+// }}}
+
