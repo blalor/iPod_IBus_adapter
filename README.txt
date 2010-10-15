@@ -89,4 +89,23 @@ Other observances:
 characters:
     ~ == ->
  \x7f == <-
- 
+
+== 10/14/2010 ==
+so, basically "now" equates to stopping a long-running button press, and/or asking for a status update.
+
+questions for Josh's setup:
+• what does the SDRS transmit on startup?
+• … when the radio is powering off (if anything(?))
+• … when the radio switches modes (if anything(?))
+• … in response to "now"?
+
+• verify button presses above
+
+• what does a single "M" push do? -- nothing
+• … and does it change the operation of any other buttons? -- no
+• what does a single "SAT" press do? -- changes preset bank
+
+• what sequence of commands is sent after a channel change?
+• … after an ESN request (hold "sat")
+
+• how change band (actually, preset bank)? -- sat
