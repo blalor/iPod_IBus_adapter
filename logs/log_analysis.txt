@@ -18,22 +18,22 @@ preset 0 == no preset selected
     tuning info when chan name changes, but text changes.
     
     probable reply-to for
-        3D 0E 00 (inf1)        => <3E 01 06>
+        <3D 0E 00> (inf1)        => <3E 01 06>
             chan unchanged; preset bank goes to 0, preset num to 1
         
-        3D 0F 00 (inf2)        => <3E 01 07>
+        <3D 0F 00> (inf2)        => <3E 01 07>
             chan unchanged; preset bank goes to 0, preset num to 1
         
-        3D 14 00 (ESN)         => <3E 01 0C>
+        <3D 14 00> (ESN)         => <3E 01 0C>
             always set chan: 48, preset bank: 3, preset: 0
         
-        3D 09 ** (set preset)  => <3E 01 01>
+        <3D 09 **> (set preset)  => <3E 01 01>
             odd place for this. only tested with preset 1; assuming <3E 01 01>
             doesn't change, tho
             
             channel goes to 0; preset info as set?
     
-    infrequently acts as a reply to <3E 02> ('now')
+    infrequently acts as a reply to <3D 02 00> ('now')
         
 73 .. 68 3E 02
     sends tuning info (channel number, name, preset info) in response to many
@@ -46,43 +46,43 @@ preset 0 == no preset selected
     looks like if I get another command within 250ms I can ignore this.
     
     probable explicit reply-to for
-        3D 02 00 ('now') -- often (usually? always?) sent jjj
+        <3D 02 00> ('now') -- often (usually? always?) sent
     
     ACK for
-        3D 08 ** (preset recall)
-        3D 03 00 (channel up)
-        3D 15 00 (SAT (preset bank change))
+        <3D 08 **> (preset recall)
+        <3D 03 00> (channel up)
+        <3D 15 00> (SAT (preset bank change))
         
 73 .. 68 3E 03
     probable reply-to for
-        3D 04 00 (channel down)
+        <3D 04 00> (channel down)
     
-    sent instead of sending <3E 02> reply, as is common for other commands
+    sent instead of sending <3D 02 00> reply, as is common for other commands
     
 
 73 .. 68 3E 04
     probable reply-to for
-        3D 05 00 (hold channel up)
+        <3D 05 00> (hold channel up)
     
-    send w/ channel increment until <3E 02> ('now') is sent.
+    send w/ channel increment until <3D 02 00> ('now') is sent.
     observed approx. every 200ms, which may be suggested timing, or time
     required to tune to new channel. @todo
     
 73 .. 68 3E 05
     probable reply-to for
-        3D 06 00 (hold channel down)
+        <3D 06 00> (hold channel down)
     
     see notes above for <3E 04>
     
 73 .. 68 3E 11, 73 .. 68 3E 12
     probable reply-tos for
-        3D 07 00 (hold "M", initiate scan)
+        <3D 07 00> (hold "M", initiate scan)
     
     <3E 12> followed by <3E 11>
     Looks like <3E 12> is the channel that's being tuned to, followed by 
-    <3E 11> once a lock has been achieved.  Just like <3E 02> and <3E 01>.
+    <3E 11> once a lock has been achieved.  Just like <3D 02 00> and <3D 01 00>.
     Looks like I can & ("and") with 0x10 to test if scan is enabled.
     
     Channel increments with every update.
     
-    <3E 02> ("now") cancels scan.
+    <3D 02 00> ("now") cancels scan.
