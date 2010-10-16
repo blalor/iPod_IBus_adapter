@@ -44,20 +44,20 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 #define PKT_CMD  3
 
 // SDRS commands
-#define SDRS_CMD_POWER          0x00 // power
+#define SDRS_CMD_POWER          0x00 // power; not seen in Josh's car
 #define SDRS_CMD_MODE           0x01 // mode
 #define SDRS_CMD_NOW            0x02 // "now"
 #define SDRS_CMD_CHAN_UP        0x03 // channel up
 #define SDRS_CMD_CHAN_DOWN      0x04 // channel down
 #define SDRS_CMD_CHAN_UP_HOLD   0x05 // channel up and hold
 #define SDRS_CMD_CHAN_DOWN_HOLD 0x06 // channel down and hold
-#define SDRS_CMD_PRESET         0x08 // preset selected
-#define SDRS_CMD_PRESET_HOLD    0x09 // preset held
-#define SDRS_CMD_M              0x0D // "m"
+#define SDRS_CMD_START_SCAN     0x07 // "M" down and hold; start scan
+#define SDRS_CMD_PRESET         0x08 // preset recall
+#define SDRS_CMD_PRESET_HOLD    0x09 // preset store
 #define SDRS_CMD_INF1           0x0E // INF 1st press; display artist
 #define SDRS_CMD_INF2           0x0F // INF 2nd press; display song
-#define SDRS_CMD_SAT_HOLD       0x14 // SAT press and hold
-#define SDRS_CMD_SAT            0x15 // SAT press
+#define SDRS_CMD_ESN_REQ        0x14 // SAT press and hold; ESN request
+#define SDRS_CMD_SAT            0x15 // SAT press; preset bank change
 
 // number of times to retry sending messages if verification fails
 #define TX_RETRY_COUNT 2
@@ -68,7 +68,7 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 // data is valid.
 #define MAX_EXPECTED_LEN 64
 
-#define TX_BUF_LEN 128
+#define TX_BUF_LEN 80
 #define RX_BUF_LEN (MAX_EXPECTED_LEN + 2)
 
 /*
@@ -101,12 +101,13 @@ uint8_t rx_ind;
 
 typedef struct __sat_state {
     uint8_t channel;
-    uint8_t band;
-    uint8_t preset;
+    uint8_t presetBank;
+    uint8_t presetNum;
     boolean active; // whether we're playing or not
+    boolean scanning;
 } SatState;
 
-SatState satelliteState = {1, 1, 0, false};
+SatState satelliteState = {1, 1, 0, false, false};
 
 // timestamp of last poll from radio
 unsigned long lastPoll;
@@ -196,7 +197,7 @@ void setup() {
     
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
-    send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
+    send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
     
     digitalWrite(LED_GRN, LOW);
     digitalWrite(LED_YEL, LOW);
@@ -235,27 +236,26 @@ void loop() {
         if ((lastPoll + 20000L) < millis()) {
             DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
             digitalWrite(LED_RED, HIGH);
-            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
+            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
             lastPoll = millis();
         }
         
-        if (millis() >= nextTestText) {
-            unsigned long now = millis();
-            unsigned long seconds = now / 1000L;
-            unsigned long minutes = seconds / 60L;
-            
-            snprintf_P(global_text_data, 10, PSTR("%lu:%02lu.%03lu"), minutes, seconds % 60L, now % 1000L);
-            
-            if (satelliteState.active) {
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x00..\x04"),
-                            // "........",
-                            global_text_data,
-                            true);
-            }
-            
-            nextTestText = millis() + 5000L;
-        }
+        // if (millis() >= nextTestText) {
+        //     unsigned long now = millis();
+        //     unsigned long seconds = now / 1000L;
+        //     unsigned long minutes = seconds / 60L;
+        //     
+        //     if (satelliteState.active) {
+        //         snprintf_P(global_text_data, 9, PSTR("%lu:%02lu.%03lu"), minutes, seconds % 60L, now % 1000L);
+        // 
+        //         send_packet(SDRS_ADDR, RAD_ADDR,
+        //                     ibus_data("\x3E\x01\x00..\x04"),
+        //                     global_text_data,
+        //                     true, true);
+        //     }
+        //     
+        //     nextTestText = millis() + 5000L;
+        // }
         
         process_incoming_data();
     }
@@ -474,7 +474,7 @@ void dispatch_packet(const uint8_t *packet) {
             DEBUG_PGM_PRINTLN("sending SDRS announcement because radio sent device status ready");
             
             // send SDRS announcement
-            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false);
+            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
         }
     }
     else if ((packet[PKT_SRC] == RAD_ADDR) && (packet[PKT_DEST] == SDRS_ADDR)) {
@@ -484,118 +484,212 @@ void dispatch_packet(const uint8_t *packet) {
             lastPoll = millis();
             
             DEBUG_PGM_PRINTLN("responding to poll request");
-            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x00"), NULL, false);
+            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x00"), NULL, false, false);
         }
         else if (packet[PKT_CMD] == 0x3D) {
             // command sent that we must reply to
             
-            switch(packet[4]) {
-                case SDRS_CMD_POWER:
-                    // this is sometimes sent by the radio immediately after
-                    // our initial announcemnt if the ignition is off (ACC
-                    // isn't hot). Perhaps only after the IBus is first
-                    // initialized.  Either way, it seems to indicate that the
-                    // radio's off and we shouldn't be doing anything.
-                    DEBUG_PGM_PRINT("got power command, ");
-                    DEBUG_PRINTLN(packet[5], HEX);
-                    
-                    // fall through
+            if (packet[4] == SDRS_CMD_POWER) {
+                // <3D 00>
+                // this is sometimes sent by the radio immediately after
+                // our initial announcemnt if the ignition is off (ACC
+                // isn't hot). Perhaps only after the IBus is first
+                // initialized.  Either way, it seems to indicate that the
+                // radio's off and we shouldn't be doing anything.
                 
-                case SDRS_CMD_MODE:
-                    // sent when the mode on the radio is changed away from
-                    // SIRIUS, and when the radio is turned off while SIRIUS
-                    // is active.
-                    DEBUG_PGM_PRINT("[cmd] got mode command, ");
-                    DEBUG_PRINTLN(packet[5], HEX);
+                // respond with
+                //   73 .. 68 3E 00 00 1A 11 04
+                // -or-
+                //   73 .. 68 3E 00 00 95 20 04
                 
-                    set_state_inactive();
-                    
-                    DEBUG_PGM_PRINTLN("responding to mode command");
-                    send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x00\x00..\x04"),
-                                NULL, true);
-                    
-                    break;
-            
-                case SDRS_CMD_CHAN_UP:
-                case SDRS_CMD_CHAN_DOWN:
-                case SDRS_CMD_CHAN_UP_HOLD:
-                case SDRS_CMD_CHAN_DOWN_HOLD:
-                case SDRS_CMD_PRESET:
-                case SDRS_CMD_PRESET_HOLD:
-                    DEBUG_PGM_PRINT("[cmd] got nav command, ");
-                    DEBUG_PRINT(packet[4], HEX);
-                    DEBUG_PGM_PRINT(" ");
-                    DEBUG_PRINTLN(packet[5], HEX);
-                    
-                    handle_buttons(packet[4], packet[5]);
-                    
-                    // a little something for the display
-                    DEBUG_PGM_PRINTLN("sending text after channel change");
-                    send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x01\x00..\x04"),
-                                "Yo.", true);
-                    delay(50);
-                    // fall through!
+                DEBUG_PGM_PRINT("got power command, ");
+                DEBUG_PRINTLN(packet[5], HEX);
+                
+                set_state_inactive();
 
-                case SDRS_CMD_NOW:
-                    // this is the command received when the mode is changed
-                    // on the radio to select SIRIUS. It is also sent
-                    // periodically if we don't respond quickly enough with an
-                    // updated display command (3D 01 00 …)
-                    DEBUG_PGM_PRINTLN("got \"now\"");
+                DEBUG_PGM_PRINTLN("responding to power command");
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x00\x00\x1A\x11\x04"),
+                            NULL, false, false);
+            }
+            else if (packet[4] == SDRS_CMD_MODE) {
+                // <3D 01>
+                // sent when the mode on the radio is changed away from
+                // SIRIUS, and when the radio is turned off while SIRIUS
+                // is active.
                 
-                    set_state_active();
-                    // fall through!
+                // respond with
+                //   73 .. 68 3E 00 00 1A 11 04
+                // -or-
+                //   73 .. 68 3E 00 00 95 20 04
                 
-                case SDRS_CMD_SAT:
-                    DEBUG_PGM_PRINTLN("got sat press");
-                    send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x02\x00..\x04   !!   "),
-                                NULL, true);
-                    
-                    if (packet[4] == SDRS_CMD_NOW) {
-                        delay(50);
-                        // a little something for the display
-                        DEBUG_PGM_PRINTLN("sending text for \"now\"");
-                        snprintf_P(global_text_data, 10, PSTR("chan %3d!"), satelliteState.channel);
-                        send_packet(SDRS_ADDR, RAD_ADDR,
-                                    ibus_data("\x3E\x01\x00..\x04"),
-                                    // "........",
-                                    global_text_data,
-                                    true);
-                    }
-                    break;
-                    
-                case SDRS_CMD_INF1:
-                    DEBUG_PGM_PRINTLN("got first inf press");
-                    
-                    // this text actually shows! (kind of; chopped 1st char,
-                    // garbled last));
-                     send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x01\x06..\x01dummy1.0 dummy1.1 dummy1.2"),
-                                NULL, true);
-                    break;
+                DEBUG_PGM_PRINT("[cmd] got mode command, ");
+                DEBUG_PRINTLN(packet[5], HEX);
+            
+                set_state_inactive();
                 
-                case SDRS_CMD_INF2:
-                    DEBUG_PGM_PRINTLN("got second inf press");
+                DEBUG_PGM_PRINTLN("responding to mode command");
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x00\x00\x1A\x11\x04"),
+                            NULL, false, false);
                 
-                    // @todo reconcile this with dbroome's code
-                    send_packet(SDRS_ADDR, RAD_ADDR,
-                                ibus_data("\x3E\x01\x07..\x01dummy2.0 dummy2.1 dummy2.2"),
-                                NULL, true);
-                    break;
+            }
+            else if (packet[4] == SDRS_CMD_NOW) {
+                // <3D 02>
+                // this is the command received when the mode is changed
+                // on the radio to select SIRIUS. It is also sent
+                // periodically if we don't respond quickly enough with an
+                // updated display command (3D 01 00 …)
+                DEBUG_PGM_PRINTLN("got \"now\"");
                 
-                case SDRS_CMD_M:
-                    DEBUG_PGM_PRINTLN("[UNHANDLED] got \"m\"");
+                cancel_current_operation();
+                set_state_active();
                 
-                case SDRS_CMD_SAT_HOLD:
-                    // this actually looks like RAD requesting the ESN
-                    DEBUG_PGM_PRINTLN("[UNHANDLED] got sat press and hold");
+                // text is ignored
+                // @todo experiment with returning 3E 01 instead of 3E 02; 01
+                // includes text…
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x02\x00..\x04"),
+                            NULL, true, true);
                 
-                default:
-                    // not handled
-                    break;
+                // might need to be longer; these two generally follow around
+                // 1.5 to 2 seconds after 3E 02
+                delay(100);
+                
+                // a little something for the display
+                DEBUG_PGM_PRINTLN("sending text for \"now\"");
+                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x00..\x04"),
+                            global_text_data, true, true);
+            }
+            else if (packet[4] == SDRS_CMD_CHAN_UP) {
+                // <3D 03>
+                DEBUG_PGM_PRINTLN("[cmd] got channel up");
+                
+                handle_buttons(packet[4], packet[5]);
+                
+                // send ACK; <3D 02>
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x02\x00..\x04"),
+                            NULL, true, true);
+                
+                delay(100);
+                
+                DEBUG_PGM_PRINTLN("sending text for channel change");
+                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x00..\x04"),
+                            global_text_data, true, true);
+            }
+            else if (packet[4] == SDRS_CMD_CHAN_DOWN) {
+                // <3D 04>
+                DEBUG_PGM_PRINTLN("[cmd] got channel down");
+                
+                handle_buttons(packet[4], packet[5]);
+                
+                // send ACK; <3E 03>
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x03\x00..\x04"),
+                            NULL, true, true);
+                
+                delay(100);
+                
+                DEBUG_PGM_PRINTLN("sending text for channel change");
+                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x00..\x04"),
+                            global_text_data, true, true);
+                
+            }
+            else if (packet[4] == SDRS_CMD_CHAN_UP_HOLD) {
+                // <3D 05>
+                
+                // @todo
+            }
+            else if (packet[4] == SDRS_CMD_CHAN_DOWN_HOLD) {
+                // <3D 06>
+
+                // @todo
+            }
+            else if (packet[4] == SDRS_CMD_PRESET) {
+                // <3D 08>
+                
+                handle_buttons(packet[4], packet[5]);
+                
+                // send ACK; <3E 02>
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x02\x00..\x04"),
+                            NULL, true, true);
+                
+                delay(100);
+                
+                DEBUG_PGM_PRINTLN("sending text for preset/channel change");
+                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x00..\x04"),
+                            global_text_data, true, true);
+                
+            }
+            else if (packet[4] == SDRS_CMD_PRESET_HOLD) {
+                // <3D 09>
+                
+                handle_buttons(packet[4], packet[5]);
+                
+                // send ACK; <3E 01 01 00 31>
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x02\x01\x01\x00\x31"),
+                            NULL, false, false);
+            }
+            else if (packet[4] == SDRS_CMD_INF1) {
+                // <3D 0E>
+                DEBUG_PGM_PRINTLN("got first inf press");
+                
+                 send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x06.\x01\x01"),
+                            "dummy1.0 dummy1.1 dummy1.2",
+                            true, false);
+            }
+            else if (packet[4] == SDRS_CMD_INF2) {
+                // <3D 0F>
+                DEBUG_PGM_PRINTLN("got second inf press");
+                
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                           ibus_data("\x3E\x01\x07.\x01\x01"),
+                           "dummy2.0 dummy2.1 dummy2.2",
+                           true, false);
+            }
+            else if (packet[4] == SDRS_CMD_ESN_REQ) {
+                // <3D 14>
+                DEBUG_PGM_PRINTLN("got ESN request");
+                
+                // 9 chars displayed, max, prefixed on display with "000"
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x0C\x30\x30\x30"),
+                            "forty two",
+                            false, false);
+            }
+            else if (packet[4] == SDRS_CMD_SAT) {
+                // <3D 15>
+                DEBUG_PGM_PRINTLN("got SAT");
+                
+                satelliteState.presetBank += 1;
+                if (satelliteState.presetBank > 3) {
+                    satelliteState.presetBank = 1;
+                }
+                
+                // send text update instead of <3E 02> ACK; think this'll work…
+                DEBUG_PGM_PRINTLN("sending text for preset bank/channel change");
+                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
+                send_packet(SDRS_ADDR, RAD_ADDR,
+                            ibus_data("\x3E\x01\x00..\x04"),
+                            global_text_data, true, true);
+            }
+            else if (packet[4] == SDRS_CMD_START_SCAN) {
+                // <3D 07>
+                DEBUG_PGM_PRINTLN("starting scan");
+                
+                satelliteState.scanning = true;
             }
         }
     }
@@ -624,7 +718,7 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
         
         case 0x08: // — preset button pressed
             // data byte 2 is preset number (0x01, 0x02, … 0x06)
-            satelliteState.preset = button_data;
+            satelliteState.presetNum = button_data;
             break;
         
         case 0x05: // — channel up and hold
@@ -667,7 +761,8 @@ void send_packet(uint8_t src,
                  // const prog_int16_t *pgm_data,
                  PGM_P pgm_data,
                  const char *text,
-                 boolean send_channel_preset_and_band)
+                 boolean send_channel,
+                 boolean send_preset)
 {
     boolean sent_successfully = false;
     
@@ -745,10 +840,13 @@ void send_packet(uint8_t src,
         DEBUG_PRINTLN();
     #endif
     
-    // fill in the blanks for the channel, band, and preset
-    if (send_channel_preset_and_band) {
+    // fill in the blanks for the channel, preset bank, and preset number
+    if (send_channel) {
         data[3] = satelliteState.channel;
-        data[4] = ((satelliteState.band << 4) | satelliteState.preset);
+    }
+    
+    if (send_preset) {
+        data[4] = ((satelliteState.presetBank << 4) | satelliteState.presetNum);
     }
     
     // append text
@@ -911,6 +1009,8 @@ void set_state_active() {
         simpleRemote.sendiPodOn();
         delay(50);
         simpleRemote.sendButtonReleased();
+
+        delay(50);
         
         simpleRemote.sendJustPlay();
         simpleRemote.sendButtonReleased();
@@ -926,9 +1026,20 @@ void set_state_inactive() {
     if (satelliteState.active) {
         simpleRemote.sendJustPause();
         simpleRemote.sendButtonReleased();
+
+        delay(50);
+
+        simpleRemote.sendiPodOff();
+        delay(50);
+        simpleRemote.sendButtonReleased();
     }
     
     satelliteState.active = false;
 }
 // }}}
 
+// {{{ cancel_current_operation
+void cancel_current_operation() {
+    // @todo
+}
+// }}}
