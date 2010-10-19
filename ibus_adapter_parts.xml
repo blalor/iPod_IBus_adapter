@@ -78,7 +78,7 @@
     <part name='R5' value='100k'>
         <device name='R-US_0204/5' package='0204/5' lib='rcl' />
     </part>
-    <part name='R6'>
+    <part name='R6' value='180'>
         <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
     </part>
     <part name='R7' value='10k'>
@@ -87,22 +87,22 @@
     <part name='R8' value='100k'>
         <device name='R-US_0204/5' package='0204/5' lib='rcl' />
     </part>
-    <part name='R9' value='33k'>
+    <part name='R9' value='75.0k 1%'>
         <device name='R-US_0204/5' package='0204/5' lib='rcl' />
     </part>
-    <part name='R10' value='33k'>
+    <part name='R10' value='75.0k 1%'>
         <device name='R-US_0204/5' package='0204/5' lib='rcl' />
     </part>
-    <part name='R11' value='47k'>
+    <part name='R11' value='49.9k 1%'>
         <device name='R-US_0204/5' package='0204/5' lib='rcl' />
     </part>
-    <part name='R12' value='22k'>
+    <part name='R12' value='49.9k 1%'>
         <device name='R-US_0204/5' package='0204/5' lib='rcl' />
     </part>
-    <part name='R13'>
+    <part name='R13' value='180'>
         <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
     </part>
-    <part name='R14'>
+    <part name='R14' value='180'>
         <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
     </part>
     <part name='S1'>
