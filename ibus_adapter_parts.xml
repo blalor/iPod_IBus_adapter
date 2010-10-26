@@ -1,15 +1,9 @@
 <?xml version='1.0'?>
 <schematic name='ibus_adapter.sch'>
-    <part name='AUDIO_OUT'>
-        <device name='PINHD-1X3' package='1X03' lib='pinhead' />
-    </part>
-    <part name='C1' value='1nF'>
+    <part name='C1' value='1000pF'>
         <device name='C-US025-030X050' package='C025-030X050' lib='rcl' />
     </part>
-    <part name='C2' value='10mF'>
-        <device name='CPOL-USE5-10.5' package='E5-10,5' lib='rcl' />
-    </part>
-    <part name='C3'>
+    <part name='C3' value='0.1µF'>
         <device name='C-US025-025X050' package='C025-025X050' lib='rcl' />
     </part>
     <part name='C4' value='0.1µF'>
@@ -24,22 +18,25 @@
     <part name='C7' value='0.1µF'>
         <device name='C-US025-025X050' package='C025-025X050' lib='rcl' />
     </part>
-    <part name='C8'>
+    <part name='C8' value='100µF'>
         <device name='CPOL-USE2.5-5' package='E2,5-5' lib='rcl' />
     </part>
-    <part name='D1' value='1N4004'>
-        <device name='1N4004' package='DO41-10' lib='diode' />
+    <part name='C9' value='100µF'>
+        <device name='CPOL-USE3.5-8' package='E3,5-8' lib='rcl' />
     </part>
-    <part name='D2' value='1N4004'>
+    <part name='D2' value='1N4148'>
+        <device name='1N4148DO35-7' package='DO35-7' lib='diode' />
+    </part>
+    <part name='D3' value='1N5361BG'>
+        <device name='1N5365B' package='SURMETIC_40' lib='my_lib1' />
+    </part>
+    <part name='D4' value='1N4004'>
         <device name='1N4004' package='DO41-10' lib='diode' />
     </part>
     <part name='IC1' value='AVR_ATMEGA168-20P'>
         <device name='AVR_ATMEGA168-20P' package='AVR_DIL28-3' lib='boarduino' />
     </part>
-    <part name='IC2' value='74HC125N'>
-        <device name='74HC125N' package='DIL14' lib='74xx-eu' />
-    </part>
-    <part name='IC3' value='MCP1700'>
+    <part name='IC3' value='MCP1700-3302E/TO'>
         <device name='ULINK_MC1700' package='ULINK_TO92' lib='xbee' />
     </part>
     <part name='IC4' value='7805T'>
@@ -48,70 +45,70 @@
     <part name='IC5' value='AMIS-30600'>
         <device name='AMIS-30600' package='SO-8' lib='my_lib1' />
     </part>
-    <part name='IPOD'>
-        <device name='PINHD-1X9' package='1X09' lib='pinhead' />
+    <part name='IPOD-DIN' value='MD-80SM'>
+        <device name='MD-80SM(2)' package='MD-80SM' lib='my_lib1' />
     </part>
     <part name='JP1' value='ICSP'>
         <device name='PINHD-2X3' package='2X03' lib='pinhead' />
     </part>
+    <part name='JP2'>
+        <device name='PINHD-1X5' package='1X05' lib='pinhead' />
+    </part>
     <part name='LED1'>
-        <device name='LED3MM' package='LED3MM' lib='led' />
+        <device name='LEDCHIP-LED0603' package='CHIP-LED0603' lib='led' />
     </part>
     <part name='LED2'>
-        <device name='LED3MM' package='LED3MM' lib='led' />
+        <device name='LEDCHIP-LED0603' package='CHIP-LED0603' lib='led' />
     </part>
     <part name='LED3'>
-        <device name='LED3MM' package='LED3MM' lib='led' />
+        <device name='LEDCHIP-LED0603' package='CHIP-LED0603' lib='led' />
+    </part>
+    <part name='LED4'>
+        <device name='LEDCHIP-LED0603' package='CHIP-LED0603' lib='led' />
     </part>
     <part name='R1' value='1k'>
         <device name='R-US_0204/7' package='0204/7' lib='rcl' />
     </part>
-    <part name='R2' value='100k'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R3' value='100k'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R4' value='100k'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R5' value='100k'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R6' value='180'>
+    <part name='R2' value='1k'>
         <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
+    </part>
+    <part name='R3' value='10k'>
+        <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
+    </part>
+    <part name='R4' value='10k'>
+        <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
+    </part>
+    <part name='R5' value='1k'>
+        <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
+    </part>
+    <part name='R6' value='150'>
+        <device name='R-US_R0603' package='R0603' lib='rcl' />
     </part>
     <part name='R7' value='10k'>
         <device name='R-US_0207/10' package='0207/10' lib='rcl' />
     </part>
-    <part name='R8' value='100k'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
+    <part name='R8' value='150'>
+        <device name='R-US_R0603' package='R0603' lib='rcl' />
     </part>
-    <part name='R9' value='75.0k 1%'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
+    <part name='R13' value='150'>
+        <device name='R-US_R0603' package='R0603' lib='rcl' />
     </part>
-    <part name='R10' value='75.0k 1%'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R11' value='49.9k 1%'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R12' value='49.9k 1%'>
-        <device name='R-US_0204/5' package='0204/5' lib='rcl' />
-    </part>
-    <part name='R13' value='180'>
-        <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
-    </part>
-    <part name='R14' value='180'>
-        <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
+    <part name='R14' value='150'>
+        <device name='R-US_R0603' package='R0603' lib='rcl' />
     </part>
     <part name='S1'>
         <device name='SWITCH-OMRON_10-XX' package='SWITCH-OMRON_B3F-10XX' lib='boarduino' />
     </part>
-    <part name='VEH'>
-        <device name='PINHD-1X3' package='1X03' lib='pinhead' />
+    <part name='T1' value='BC547'>
+        <device name='BC547A-NPN-TO92-EBC' package='TO92-EBC' lib='transistor' />
+    </part>
+    <part name='T2' value='BC547'>
+        <device name='BC547A-NPN-TO92-EBC' package='TO92-EBC' lib='transistor' />
     </part>
     <part name='X1' value='16.00MHz'>
         <device name='DIGG_CERMOSCILL' package='DIGG_CERM_OSC' lib='boarduino' />
+    </part>
+    <part name='X2' value='43045-1200'>
+        <device name='HEADER_POS12_43045-1200' package='43045-1200' lib='con-molex-micro-fit-3_0' />
     </part>
 </schematic>

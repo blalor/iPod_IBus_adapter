@@ -1,5 +1,8 @@
 <?xml version='1.0'?>
 <schematic name='ipod_connector.sch'>
+    <part name='HDR1' value='SMHDR-1X7'>
+        <device name='SMHDR-1X7' package='SMHDR-1X7' lib='ipod_lib' />
+    </part>
     <part name='R1' value='500k'>
         <device name='R-US_R0603' package='R0603' lib='resistor' />
     </part>
@@ -17,8 +20,5 @@
     </part>
     <part name='U$1' value='IPOD_CONNECTOR_MALE'>
         <device name='IPOD_CONNECTOR_MALE' package='IPOD_MALE_CONNECTOR' lib='SparkFun' />
-    </part>
-    <part name='U$2' value='SMHDR-1X6'>
-        <device name='SMHDR-1X6' package='SMHDR-1X6' lib='ipod_lib' />
     </part>
 </schematic>
