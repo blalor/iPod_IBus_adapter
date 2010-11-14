@@ -23,15 +23,15 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 // pin mappings
 #define INH_PIN         2
 
-#define CONSOLE_RX_PIN  3
-#define CONSOLE_TX_PIN  4
+#define CONSOLE_RX_PIN 14
+#define CONSOLE_TX_PIN 15
 
-#define IPOD_RX_PIN    19 // 28 on chip
-#define IPOD_TX_PIN    18 // 27 on chip
+#define IPOD_RX_PIN 8 // 14 on chip
+#define IPOD_TX_PIN 7 // 13 on chip
 
-#define LED_GRN 8
-#define LED_YEL 7
-#define LED_RED 6
+#define LED_COLL 19 // red
+#define LED_ACT1 18 // yellow
+#define LED_ACT2 17 // green
 
 // addresses of IBus devices
 #define RAD_ADDR  0x68
@@ -157,14 +157,14 @@ void setup() {
     
     MCUSR = 0;
 
-    pinMode(LED_GRN, OUTPUT);
-    pinMode(LED_YEL, OUTPUT);
-    pinMode(LED_RED, OUTPUT);
+    pinMode(LED_ACT2, OUTPUT);
+    pinMode(LED_ACT1, OUTPUT);
+    pinMode(LED_COLL, OUTPUT);
     
     pinMode(INH_PIN, INPUT);
     
     // indicate setup is underway
-    digitalWrite(LED_YEL, HIGH);
+    digitalWrite(LED_ACT1, HIGH);
     
     // Set up timer2 at Fcpu/1 (no prescaler) for contention detection. Must
     // be done before any serial activity!
@@ -199,18 +199,18 @@ void setup() {
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
     
-    digitalWrite(LED_GRN, LOW);
-    digitalWrite(LED_YEL, LOW);
-    digitalWrite(LED_RED, LOW);
+    digitalWrite(LED_ACT2, LOW);
+    digitalWrite(LED_ACT1, LOW);
+    digitalWrite(LED_COLL, LOW);
 
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_GRN, HIGH);
-        digitalWrite(LED_YEL, HIGH);
-        digitalWrite(LED_RED, HIGH);
+        digitalWrite(LED_ACT2, HIGH);
+        digitalWrite(LED_ACT1, HIGH);
+        digitalWrite(LED_COLL, HIGH);
         delay(250);
-        digitalWrite(LED_GRN, LOW);
-        digitalWrite(LED_YEL, LOW);
-        digitalWrite(LED_RED, LOW);
+        digitalWrite(LED_ACT2, LOW);
+        digitalWrite(LED_ACT1, LOW);
+        digitalWrite(LED_COLL, LOW);
         delay(250);
     }
 }
@@ -219,7 +219,7 @@ void setup() {
 // {{{ loop
 void loop() {
     if (millis() > ledOffTime) {
-        digitalWrite(LED_GRN, LOW);
+        digitalWrite(LED_ACT2, LOW);
     }
     
     // can't do anything while the bus is asleep.
@@ -235,7 +235,7 @@ void loop() {
         */
         if ((lastPoll + 20000L) < millis()) {
             DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
-            digitalWrite(LED_RED, HIGH);
+            digitalWrite(LED_COLL, HIGH);
             send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
             lastPoll = millis();
         }
@@ -307,7 +307,7 @@ boolean process_incoming_data() {
     uint8_t bytes_availble = Serial.available();
     
     if (bytes_availble) {
-        digitalWrite(LED_YEL, HIGH);
+        digitalWrite(LED_ACT1, HIGH);
 
         #if DEBUG && DEBUG_PACKET_PARSING
             DEBUG_PGM_PRINT("[pkt] buf contents: ");
@@ -446,7 +446,7 @@ boolean process_incoming_data() {
         }
     } // if (bytes_availble  >= 2)
     
-    digitalWrite(LED_YEL, LOW);
+    digitalWrite(LED_ACT1, LOW);
 
     return found_message;
 }
@@ -917,8 +917,8 @@ void send_packet(uint8_t src,
             }
             DEBUG_PRINTLN();
         #endif
-
-        digitalWrite(LED_GRN, HIGH);
+        
+        digitalWrite(LED_ACT2, HIGH);
         ledOffTime = millis() + 500L;
         
         // check for bus contention before sending
@@ -940,7 +940,7 @@ void send_packet(uint8_t src,
             
             if (contention) {
                 // someone's sending data; we cannot send
-                digitalWrite(LED_RED, HIGH);
+                digitalWrite(LED_COLL, HIGH);
                 DEBUG_PGM_PRINT("CONTENTION SENDING ");
                 DEBUG_PRINTLN(retryCnt, DEC);
 
@@ -959,7 +959,7 @@ void send_packet(uint8_t src,
                 delay(20 * (retryCnt + 1));
             }
             else {
-                digitalWrite(LED_RED, LOW);
+                digitalWrite(LED_COLL, LOW);
             
                 // disableSerialReceive();
                 // Serial.flush();
