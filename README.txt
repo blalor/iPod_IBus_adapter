@@ -109,3 +109,10 @@ questions for Josh's setup:
 • … after an ESN request (hold "sat")
 
 • how change band (actually, preset bank)? -- sat
+
+
+class SatelliteRadio:
+    
+    
+    
+    

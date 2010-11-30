@@ -8,6 +8,8 @@
 #include "HardwareSerial.h"
 
 #include <SimpleRemote.h>
+// #include <AdvancedRemote.h>
+
 #include <NewSoftSerial.h>
 
 #include "pgm_util.h"
@@ -90,9 +92,7 @@ rounded timer count=ROUND(target timer count '1', 0)
 #define CONTENTION_TIMEOUT 173        
 
 // buffer for building outgoing packets
-// int because we need a marker in between messages to delay activity on the
-// bus briefly
-int tx_buf[TX_BUF_LEN];
+uint8_t tx_buf[TX_BUF_LEN];
 uint8_t tx_ind;
 
 // buffer for processing incoming packets; same size as serial buffer
@@ -126,6 +126,11 @@ NewSoftSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN);
 // iPod simple remote instance
 SimpleRemote simpleRemote;
 
+// iPod advanced remote instance
+// AdvancedRemote advancedRemote;
+// boolean advancedRemoteTestComplete;
+// unsigned long playlistCount;
+
 #if DEBUG
     NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
@@ -143,6 +148,30 @@ Print *console =
         NULL
     #endif
 ;
+
+// void itemCountHandler(unsigned long count) {
+//   DEBUG_PGM_PRINT("Playlist Count: ");
+//   DEBUG_PRINTLN(count);
+// 
+//   playlistCount = count;
+// 
+//   // that ought to be the count of playlists, since that's what we asked for.
+//   // so, let's start printing out their names
+//   advancedRemote.getItemNames(AdvancedRemote::ITEM_PLAYLIST, 0, playlistCount);
+// }
+// 
+// void itemNameHandler(unsigned long offset, const char *name) {
+//   DEBUG_PGM_PRINT("Playlist ");
+//   DEBUG_PRINT(offset, DEC);
+//   DEBUG_PGM_PRINT(" is named '");
+//   DEBUG_PRINT(name);
+//   DEBUG_PGM_PRINTLN("'");
+// 
+//   if (offset == (playlistCount - 1)) {
+//     DEBUG_PGM_PRINTLN("Got last playlist name");
+//     advancedRemoteTestComplete = true;
+//   }
+// }
 
 // {{{ setup
 void setup() {
@@ -172,9 +201,25 @@ void setup() {
     TCCR2B |= _BV(CS22);
     TCCR2B &= ~(_BV(CS21) | _BV(CS20));
     
+    // advancedRemote.setSerial(nssIPod);
+    // 
+    // advancedRemote.setItemCountHandler(itemCountHandler);
+    // advancedRemote.setItemNameHandler(itemNameHandler);
+    // 
+    // advancedRemote.setup();
+    // advancedRemote.enable();
+    // 
+    // advancedRemote.getItemCount(AdvancedRemote::ITEM_PLAYLIST);
+    // 
+    // while (! advancedRemoteTestComplete) {
+    //     advancedRemote.loop();
+    // }
+    // 
+    // advancedRemote.disable();
+    
     simpleRemote.setSerial(nssIPod);
     simpleRemote.setup();
-     
+    
     announcement_sent = false;
     nextTestText = millis() + 5000L;
     
@@ -186,6 +231,14 @@ void setup() {
     // reconfigure) the USART
     
     // can't do anything while the bus is asleep.
+    
+    if (digitalRead(INH_PIN) == LOW) {
+        // bus is inhibited
+        DEBUG_PGM_PRINTLN("bus is inhibited");
+    } else {
+        DEBUG_PGM_PRINTLN("bus is alive");
+    }
+    
     // bus_inhibited = true;
     // while(bus_inhibited) {
     //     configureForBusInhibition();
@@ -478,6 +531,8 @@ void dispatch_packet(const uint8_t *packet) {
         }
     }
     else if ((packet[PKT_SRC] == RAD_ADDR) && (packet[PKT_DEST] == SDRS_ADDR)) {
+        // packet sent to SDRS
+        
         // check the command byte
         if (packet[PKT_CMD] == 0x01) {
             // handle poll request
@@ -965,7 +1020,7 @@ void send_packet(uint8_t src,
                 // Serial.flush();
             
                 for (int i = 0; i < tx_ind; i++) {
-                    Serial.write((uint8_t) tx_buf[i]);
+                    Serial.write(tx_buf[i]);
                 }
 
                 // enableSerialReceive();
@@ -990,7 +1045,7 @@ void send_packet(uint8_t src,
 // }}}
 
 // {{{ calc_checksum
-int calc_checksum(int *buf, uint8_t buf_len) {
+int calc_checksum(uint8_t *buf, uint8_t buf_len) {
     int checksum = 0;
     
     for (size_t i = 0; i < buf_len; i++) {
