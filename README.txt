@@ -44,7 +44,7 @@ Messages we understand:
 
 Messages we send:
     src: 0x73 (satellite radio)
-        dest: 0xFF (broadcast)
+        dest: 0x68 (radio)
             data: 0x02 0x00 — poll response (sent for "are you there" from radio)
             data: 0x02 0x01 — announcement when bus activates
     
@@ -112,7 +112,4 @@ questions for Josh's setup:
 
 
 class SatelliteRadio:
-    
-    
-    
     

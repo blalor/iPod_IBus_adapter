@@ -1,3 +1,10 @@
+/*
+    The default state for an iPod when it's connected to this adapter is in
+    "simple" mode; it should revert to this state whenever it's disconnected.
+    
+    For our purposes, switching to advanced mode will require resetting
+    iPodState to a known state and then enabling advanced mode.
+ */
 #define DEBUG 1
 #define DEBUG_PACKET_PARSING 0
 #define WICKED_VERBOSE 0
@@ -8,7 +15,7 @@
 #include "HardwareSerial.h"
 
 #include <SimpleRemote.h>
-// #include <AdvancedRemote.h>
+#include <AdvancedRemote.h>
 
 #include <NewSoftSerial.h>
 
@@ -25,6 +32,8 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 // pin mappings
 #define INH_PIN         2
 
+// RX for console is not currently supported; need special handling for
+// multiple NewSoftSerial instances
 #define CONSOLE_RX_PIN 14
 #define CONSOLE_TX_PIN 15
 
@@ -109,10 +118,26 @@ typedef struct __sat_state {
 
 SatState satelliteState = {1, 1, 0, false, false};
 
+typedef struct __ipod_state {
+    // state flag to determine if we can see the iPod
+    boolean present;
+    
+    boolean advancedRemoteEnabled;
+    
+    unsigned long currentTrackLengthInMilliseconds;
+    unsigned long currentTrackElapsedTimeInMilliseconds;
+    AdvancedRemote::PlaybackStatus playbackStatus;
+    unsigned long playlistPosition;
+    
+    char *trackName;
+    char *artistName;
+    char *albumName;
+} IPodState;
+
+IPodState iPodState;
+
 // timestamp of last poll from radio
 unsigned long lastPoll;
-
-unsigned long nextTestText;
 
 // trigger time to turn off LED
 unsigned long ledOffTime;
@@ -123,19 +148,20 @@ unsigned long readTimeout;
 // NSS instance for the iPod
 NewSoftSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN);
 
-// iPod simple remote instance
-SimpleRemote simpleRemote;
+// the active iPodSerial instance
+iPodSerial *activeRemote;
 
-// iPod advanced remote instance
-// AdvancedRemote advancedRemote;
-// boolean advancedRemoteTestComplete;
-// unsigned long playlistCount;
+// iPod remote instances
+SimpleRemote simpleRemote;
+AdvancedRemote advancedRemote;
+
+boolean use_adv_remote;
 
 #if DEBUG
     NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
 
-char global_text_data[10];
+char channel_text_data[10];
 volatile boolean bus_inhibited;
 boolean announcement_sent;
 
@@ -149,33 +175,10 @@ Print *console =
     #endif
 ;
 
-// void itemCountHandler(unsigned long count) {
-//   DEBUG_PGM_PRINT("Playlist Count: ");
-//   DEBUG_PRINTLN(count);
-// 
-//   playlistCount = count;
-// 
-//   // that ought to be the count of playlists, since that's what we asked for.
-//   // so, let's start printing out their names
-//   advancedRemote.getItemNames(AdvancedRemote::ITEM_PLAYLIST, 0, playlistCount);
-// }
-// 
-// void itemNameHandler(unsigned long offset, const char *name) {
-//   DEBUG_PGM_PRINT("Playlist ");
-//   DEBUG_PRINT(offset, DEC);
-//   DEBUG_PGM_PRINT(" is named '");
-//   DEBUG_PRINT(name);
-//   DEBUG_PGM_PRINTLN("'");
-// 
-//   if (offset == (playlistCount - 1)) {
-//     DEBUG_PGM_PRINTLN("Got last playlist name");
-//     advancedRemoteTestComplete = true;
-//   }
-// }
-
 // {{{ setup
 void setup() {
     #if DEBUG
+        // RX not supported; see comment near CONSOLE_RX_PIN define
         nssConsole.begin(115200);
         
         if (MCUSR & _BV(PORF))  DEBUG_PGM_PRINTLN("power-on reset");
@@ -186,42 +189,51 @@ void setup() {
     
     MCUSR = 0;
 
+    pinMode(LED_COLL, OUTPUT);
     pinMode(LED_ACT2, OUTPUT);
     pinMode(LED_ACT1, OUTPUT);
-    pinMode(LED_COLL, OUTPUT);
     
     pinMode(INH_PIN, INPUT);
     
     // indicate setup is underway
     digitalWrite(LED_ACT1, HIGH);
     
+    // disable NSS's pull-up on the RX line; this can be done any time after
+    // the nssIPod object is created
+    digitalWrite(IPOD_RX_PIN, LOW);
+
+    // baud rate for iPodSerial
+    nssIPod.start(9600);
+
+    // don't call iPodSerial::setup(); only calls *Serial::begin(), which 
+    // we're already taking care of
+    // @todo verify still valid if iPodSerial is updated
+    simpleRemote.setSerial(nssIPod);
+    advancedRemote.setSerial(nssIPod);
+    
+    advancedRemote.setFeedbackHandler(FeedbackHandler);
+    advancedRemote.setiPodNameHandler(iPodNameHandler);
+    advancedRemote.setItemCountHandler(ItemCountHandler);
+    advancedRemote.setItemNameHandler(ItemNameHandler);
+    advancedRemote.setTimeAndStatusHandler(TimeAndStatusHandler);
+    advancedRemote.setPlaylistPositionHandler(PlaylistPositionHandler);
+    advancedRemote.setTitleHandler(TitleHandler);
+    advancedRemote.setArtistHandler(ArtistHandler);
+    advancedRemote.setAlbumHandler(AlbumHandler);
+    advancedRemote.setPollingHandler(PollingHandler);
+    advancedRemote.setShuffleModeHandler(ShuffleModeHandler);
+    advancedRemote.setRepeatModeHandler(RepeatModeHandler);
+    advancedRemote.setCurrentPlaylistSongCountHandler(CurrentPlaylistSongCountHandler);
+    
+    reset_ipod_state();
+    
+    announcement_sent = false;
+    
     // Set up timer2 at Fcpu/1 (no prescaler) for contention detection. Must
-    // be done before any serial activity!
+    // be done before any IBus serial activity!
     //     CS22:1, CS21:0, CS20:0
     TCCR2B |= _BV(CS22);
     TCCR2B &= ~(_BV(CS21) | _BV(CS20));
-    
-    // advancedRemote.setSerial(nssIPod);
-    // 
-    // advancedRemote.setItemCountHandler(itemCountHandler);
-    // advancedRemote.setItemNameHandler(itemNameHandler);
-    // 
-    // advancedRemote.setup();
-    // advancedRemote.enable();
-    // 
-    // advancedRemote.getItemCount(AdvancedRemote::ITEM_PLAYLIST);
-    // 
-    // while (! advancedRemoteTestComplete) {
-    //     advancedRemote.loop();
-    // }
-    // 
-    // advancedRemote.disable();
-    
-    simpleRemote.setSerial(nssIPod);
-    simpleRemote.setup();
-    
-    announcement_sent = false;
-    nextTestText = millis() + 5000L;
     
     // set up serial for IBus; 9600,8,E,1
     Serial.begin(9600);
@@ -230,8 +242,6 @@ void setup() {
     // test to make sure the bus is alive; if it isn't, shut down (but do not
     // reconfigure) the USART
     
-    // can't do anything while the bus is asleep.
-    
     if (digitalRead(INH_PIN) == LOW) {
         // bus is inhibited
         DEBUG_PGM_PRINTLN("bus is inhibited");
@@ -239,8 +249,9 @@ void setup() {
         DEBUG_PGM_PRINTLN("bus is alive");
     }
     
+    // can't do anything while the bus is asleep.
     // bus_inhibited = true;
-    // while(bus_inhibited) {
+    // while (bus_inhibited) {
     //     configureForBusInhibition();
     // }
     // 
@@ -250,20 +261,20 @@ void setup() {
     
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
-    send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
+    send_sdrs_device_ready_after_reset();
     
-    digitalWrite(LED_ACT2, LOW);
-    digitalWrite(LED_ACT1, LOW);
     digitalWrite(LED_COLL, LOW);
+    digitalWrite(LED_ACT1, LOW);
+    digitalWrite(LED_ACT2, LOW);
 
     for (int i = 0; i < 3; i++) {
-        digitalWrite(LED_ACT2, HIGH);
-        digitalWrite(LED_ACT1, HIGH);
         digitalWrite(LED_COLL, HIGH);
+        digitalWrite(LED_ACT1, HIGH);
+        digitalWrite(LED_ACT2, HIGH);
         delay(250);
-        digitalWrite(LED_ACT2, LOW);
-        digitalWrite(LED_ACT1, LOW);
         digitalWrite(LED_COLL, LOW);
+        digitalWrite(LED_ACT1, LOW);
+        digitalWrite(LED_ACT2, LOW);
         delay(250);
     }
 }
@@ -271,6 +282,39 @@ void setup() {
 
 // {{{ loop
 void loop() {
+    // attempt to test if an iPod's attached.  If the input's floating, this 
+    // could be a problem.
+    
+    // @todo what about a *very* weak pull-down, which should be overridden by
+    // the iPod's (presumed) pull-up?
+    
+    // advanced mode is only enabled after we've ascertained the presence of
+    // the iPod, and once the radio and SDRS ard active.
+    if (! iPodState.advancedRemoteEnabled) {
+        if (digitalRead(IPOD_RX_PIN)) {
+            if (iPodState.present == false) {
+                // transition from not-found to found
+                DEBUG_PGM_PRINTLN("iPod found");
+                
+                iPodState.present = true;
+                
+                if (satelliteState.active) {
+                    activate_ipod();
+                } else {
+                    // the ipod will be activated when the SDRS becomes active
+                }
+            }
+        } else if (iPodState.present == true) {
+            // transition from found to not-found
+            DEBUG_PGM_PRINTLN("iPod went away");
+            
+            reset_ipod_state();
+        }
+    }
+    
+    // process incoming data from iPod; will be a no-op for simple remote
+    activeRemote->loop();
+    
     if (millis() > ledOffTime) {
         digitalWrite(LED_ACT2, LOW);
     }
@@ -289,26 +333,9 @@ void loop() {
         if ((lastPoll + 20000L) < millis()) {
             DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
             digitalWrite(LED_COLL, HIGH);
-            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
+            send_sdrs_device_ready_after_reset();
             lastPoll = millis();
         }
-        
-        // if (millis() >= nextTestText) {
-        //     unsigned long now = millis();
-        //     unsigned long seconds = now / 1000L;
-        //     unsigned long minutes = seconds / 60L;
-        //     
-        //     if (satelliteState.active) {
-        //         snprintf_P(global_text_data, 9, PSTR("%lu:%02lu.%03lu"), minutes, seconds % 60L, now % 1000L);
-        // 
-        //         send_packet(SDRS_ADDR, RAD_ADDR,
-        //                     ibus_data("\x3E\x01\x00..\x04"),
-        //                     global_text_data,
-        //                     true, true);
-        //     }
-        //     
-        //     nextTestText = millis() + 5000L;
-        // }
         
         process_incoming_data();
     }
@@ -527,7 +554,7 @@ void dispatch_packet(const uint8_t *packet) {
             DEBUG_PGM_PRINTLN("sending SDRS announcement because radio sent device status ready");
             
             // send SDRS announcement
-            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x01"), NULL, false, false);
+            send_sdrs_device_ready();
         }
     }
     else if ((packet[PKT_SRC] == RAD_ADDR) && (packet[PKT_DEST] == SDRS_ADDR)) {
@@ -539,7 +566,7 @@ void dispatch_packet(const uint8_t *packet) {
             lastPoll = millis();
             
             DEBUG_PGM_PRINTLN("responding to poll request");
-            send_packet(SDRS_ADDR, 0xFF, ibus_data("\x02\x00"), NULL, false, false);
+            send_sdrs_device_ready();
         }
         else if (packet[PKT_CMD] == 0x3D) {
             // command sent that we must reply to
@@ -561,11 +588,6 @@ void dispatch_packet(const uint8_t *packet) {
                 DEBUG_PRINTLN(packet[5], HEX);
                 
                 set_state_inactive();
-
-                DEBUG_PGM_PRINTLN("responding to power command");
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x00\x00\x1A\x11\x04"),
-                            NULL, false, false);
             }
             else if (packet[4] == SDRS_CMD_MODE) {
                 // <3D 01>
@@ -582,12 +604,6 @@ void dispatch_packet(const uint8_t *packet) {
                 DEBUG_PRINTLN(packet[5], HEX);
             
                 set_state_inactive();
-                
-                DEBUG_PGM_PRINTLN("responding to mode command");
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x00\x00\x1A\x11\x04"),
-                            NULL, false, false);
-                
             }
             else if (packet[4] == SDRS_CMD_NOW) {
                 // <3D 02>
@@ -599,24 +615,6 @@ void dispatch_packet(const uint8_t *packet) {
                 
                 cancel_current_operation();
                 set_state_active();
-                
-                // text is ignored
-                // @todo experiment with returning 3E 01 instead of 3E 02; 01
-                // includes text…
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x02\x00..\x04"),
-                            NULL, true, true);
-                
-                // might need to be longer; these two generally follow around
-                // 1.5 to 2 seconds after 3E 02
-                delay(100);
-                
-                // a little something for the display
-                DEBUG_PGM_PRINTLN("sending text for \"now\"");
-                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x00..\x04"),
-                            global_text_data, true, true);
             }
             else if (packet[4] == SDRS_CMD_CHAN_UP) {
                 // <3D 03>
@@ -625,17 +623,11 @@ void dispatch_packet(const uint8_t *packet) {
                 handle_buttons(packet[4], packet[5]);
                 
                 // send ACK; <3D 02>
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x02\x00..\x04"),
-                            NULL, true, true);
+                update_sdrs_status();
                 
                 delay(100);
                 
-                DEBUG_PGM_PRINTLN("sending text for channel change");
-                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x00..\x04"),
-                            global_text_data, true, true);
+                update_sdrs_channel_text();
             }
             else if (packet[4] == SDRS_CMD_CHAN_DOWN) {
                 // <3D 04>
@@ -644,18 +636,12 @@ void dispatch_packet(const uint8_t *packet) {
                 handle_buttons(packet[4], packet[5]);
                 
                 // send ACK; <3E 03>
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x03\x00..\x04"),
-                            NULL, true, true);
+                send_sdrs_packet(ibus_data("\x3E\x03\x00..\x04"),
+                                 NULL, true, true);
                 
                 delay(100);
                 
-                DEBUG_PGM_PRINTLN("sending text for channel change");
-                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x00..\x04"),
-                            global_text_data, true, true);
-                
+                update_sdrs_channel_text();
             }
             else if (packet[4] == SDRS_CMD_CHAN_UP_HOLD) {
                 // <3D 05>
@@ -673,56 +659,51 @@ void dispatch_packet(const uint8_t *packet) {
                 handle_buttons(packet[4], packet[5]);
                 
                 // send ACK; <3E 02>
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x02\x00..\x04"),
-                            NULL, true, true);
+                update_sdrs_status();
                 
                 delay(100);
                 
-                DEBUG_PGM_PRINTLN("sending text for preset/channel change");
-                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x00..\x04"),
-                            global_text_data, true, true);
-                
+                update_sdrs_channel_text();
             }
             else if (packet[4] == SDRS_CMD_PRESET_HOLD) {
                 // <3D 09>
                 
                 handle_buttons(packet[4], packet[5]);
                 
-                // send ACK; <3E 01 01 00 31>
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x02\x01\x01\x00\x31"),
-                            NULL, false, false);
+                // send ACK; <3E 01 01 00 BP> (Band, Preset)
+                // special case of update_sdrs_status
+                send_sdrs_packet(ibus_data("\x3E\x01\x01\x00."),
+                                 NULL, false, true);
             }
             else if (packet[4] == SDRS_CMD_INF1) {
                 // <3D 0E>
                 DEBUG_PGM_PRINTLN("got first inf press");
                 
-                 send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x06.\x01\x01"),
-                            "dummy1.0 dummy1.1 dummy1.2",
-                            true, false);
+                // send artist
+                
+                send_sdrs_packet(ibus_data("\x3E\x01\x06.\x01\x01"),
+                                 iPodState.currentTrackArtist,
+                                 true, false);
             }
             else if (packet[4] == SDRS_CMD_INF2) {
                 // <3D 0F>
                 DEBUG_PGM_PRINTLN("got second inf press");
                 
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                           ibus_data("\x3E\x01\x07.\x01\x01"),
-                           "dummy2.0 dummy2.1 dummy2.2",
-                           true, false);
+                // send track name
+                
+                send_sdrs_packet(ibus_data("\x3E\x01\x07.\x01\x01"),
+                                 iPodState.currentTrackTitle,
+                                 true, false);
             }
             else if (packet[4] == SDRS_CMD_ESN_REQ) {
                 // <3D 14>
                 DEBUG_PGM_PRINTLN("got ESN request");
                 
                 // 9 chars displayed, max, prefixed on display with "000"
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x0C\x30\x30\x30"),
-                            "forty two",
-                            false, false);
+                // @todo send ipod name?
+                send_sdrs_packet(ibus_data("\x3E\x01\x0C\x30\x30\x30"),
+                                 "forty two",
+                                 false, false);
             }
             else if (packet[4] == SDRS_CMD_SAT) {
                 // <3D 15>
@@ -733,12 +714,10 @@ void dispatch_packet(const uint8_t *packet) {
                     satelliteState.presetBank = 1;
                 }
                 
+                // @todo perform some activity
+                
                 // send text update instead of <3E 02> ACK; think this'll work…
-                DEBUG_PGM_PRINTLN("sending text for preset bank/channel change");
-                snprintf_P(global_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
-                send_packet(SDRS_ADDR, RAD_ADDR,
-                            ibus_data("\x3E\x01\x00..\x04"),
-                            global_text_data, true, true);
+                update_sdrs_channel_text();
             }
             else if (packet[4] == SDRS_CMD_START_SCAN) {
                 // <3D 07>
@@ -796,14 +775,92 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
 }
 // }}}
 
-// {{{ send_packet
-// send and verify packet
-// may be recalled recursively:
-//      send_packet
-//          process_incoming_data
-//              send_packet
-// Data only gets transmitted by outermost loop
+// {{{ send_raw_ibus_packet_P
+void send_raw_ibus_packet_P(PGM_P pgm_data, size_t pgm_data_len) {
+    for (uint8_t i = 0; i < pgm_data_len; i++) {
+        tx_buf[i] = pgm_read_byte(&pgm_data[i]);
+    }
+    
+    send_raw_ibus_packet(tx_buf, pgm_data_len);
+}
+// }}}
 
+// {{{ 
+boolean send_raw_ibus_packet(uint8_t *data, size_t data_len) {
+    boolean sent_successfully = false;
+    
+    #if DEBUG /* && DEBUG_PACKET_PARSING */
+        DEBUG_PGM_PRINT("packet to send: ");
+        for (int i = 0; i < data_len; i++) {
+            DEBUG_PRINT((uint8_t) data[i], HEX);
+            DEBUG_PGM_PRINT(" ");
+        }
+        DEBUG_PRINTLN();
+    #endif
+    
+    digitalWrite(LED_ACT2, HIGH);
+    ledOffTime = millis() + 500L;
+    
+    // check for bus contention before sending
+    // 10 retries before failing (which should be *very* generous)
+    for (uint8_t retryCnt = 0; (retryCnt < 10) && (! sent_successfully); retryCnt++) {
+        // wait for line to become clear
+        boolean contention = false;
+        
+        // reset timer2 value
+        TCNT2 = 0;
+        
+        // check that the receive buffer doesn't get any data during the timer cycle
+        while ((TCNT2 < CONTENTION_TIMEOUT) && (! contention)) {
+            if (! (PIND & _BV(0))) { // pin was pulled low, so data being received
+            // if (UCSR0A & _BV(RXC0)) { // unread data in the RX buffer
+                contention = true;
+            }
+        }
+        
+        if (contention) {
+            // someone's sending data; we cannot send
+            digitalWrite(LED_COLL, HIGH);
+            DEBUG_PGM_PRINT("CONTENTION SENDING ");
+            DEBUG_PRINTLN(retryCnt, DEC);
+
+            #if DEBUG && DEBUG_PACKET_PARSING
+                uint8_t bytes_availble = Serial.available();
+                if (bytes_availble) {
+                    DEBUG_PGM_PRINT("[pkt] buf contents: ");
+                    for (int i = 0; i < bytes_availble; i++) {
+                        DEBUG_PRINT(Serial.peek(i), HEX);
+                        DEBUG_PGM_PRINT(" ");
+                    }
+                    DEBUG_PRINTLN();
+                }
+            #endif
+            
+            delay(20 * (retryCnt + 1));
+        }
+        else {
+            digitalWrite(LED_COLL, LOW);
+        
+            // disableSerialReceive();
+            // Serial.flush();
+        
+            Serial.write(data, data_len);
+
+            // enableSerialReceive();
+
+            #if DEBUG && DEBUG_PACKET_PARSING
+                DEBUG_PGM_PRINTLN("[pkt] done sending");
+            #endif
+
+            sent_successfully = true;
+        }
+    }
+    
+    return sent_successfully;
+}
+// }}}
+
+// {{{ send_sdrs_packet
 /*
     pgm_data is the static part of the message being sent, ie. without any
     text that may be dynamically generated. It's just a byte (char) array, but
@@ -811,16 +868,11 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
     manually keep track of the length. This means that none of these PROGMEM
     strings can have that sequence embedded in them!
 */
-void send_packet(uint8_t src,
-                 uint8_t dest,
-                 // const prog_int16_t *pgm_data,
-                 PGM_P pgm_data,
-                 const char *text,
-                 boolean send_channel,
-                 boolean send_preset)
+void send_sdrs_packet(PGM_P pgm_data,
+                      const char *text,
+                      boolean send_channel,
+                      boolean send_preset)
 {
-    boolean sent_successfully = false;
-    
     // length of pgm_data
     size_t pgm_data_len = 0;
     
@@ -852,11 +904,6 @@ void send_packet(uint8_t src,
     
     if (text != NULL) {
         text_len = strlen(text);
-    //     DEBUG_PRINT(text);
-    //     DEBUG_PGM_PRINT(" has length ");
-    //     DEBUG_PRINTLN(text_len, DEC);
-    // } else {
-    //     DEBUG_PGM_PRINTLN("no text");
     }
     
     data_len = pgm_data_len + text_len;
@@ -872,13 +919,11 @@ void send_packet(uint8_t src,
         DEBUG_PRINTLN(data_len, DEC);
     #endif
     
-    uint8_t *data = (uint8_t *) malloc((size_t) data_len);
+    uint8_t *data = (uint8_t *) malloc((size_t) (data_len + 2));
     if (data == NULL) {
         DEBUG_PGM_PRINT("[ERROR] Unable to malloc data of length ");
-        DEBUG_PRINTLN(data_len, DEC);
+        DEBUG_PRINTLN(data_len + 2, DEC);
         return;
-    // } else {
-    //     DEBUG_PGM_PRINTLN("malloc()'d data successfully");
     }
     
     #if WICKED_VERBOSE
@@ -894,6 +939,15 @@ void send_packet(uint8_t src,
     #if WICKED_VERBOSE
         DEBUG_PRINTLN();
     #endif
+    
+    // enable scanning flag
+    if (satelliteState.scanning && (data[0] == 0x3E)) {
+        // 0x01 is channel text update, 0x02 is status update
+        // first nibble goes to 1 for these (01 -> 11, 02 -> 12)
+        if ((data[1] == 0x01) || (data[1] == 0x02)) {
+            data[1] |= (1 << 4);
+        }
+    }
     
     // fill in the blanks for the channel, preset bank, and preset number
     if (send_channel) {
@@ -953,9 +1007,9 @@ void send_packet(uint8_t src,
         uint8_t tmp_ind = tx_ind;
         
         // copy all data into the tx buffer
-        tx_buf[tx_ind++] = src;
+        tx_buf[tx_ind++] = SDRS_ADDR;
         tx_buf[tx_ind++] = packet_len;
-        tx_buf[tx_ind++] = dest;
+        tx_buf[tx_ind++] = RAD_ADDR;
 
         for (size_t i = 0; i < data_len; i++) {
             tx_buf[tx_ind++] = data[i];
@@ -964,83 +1018,12 @@ void send_packet(uint8_t src,
         // calculate checksum, which goes immediately after the last data byte
         tx_buf[tx_ind++] = calc_checksum(&tx_buf[tmp_ind], tx_ind - tmp_ind);
         
-        #if DEBUG /* && DEBUG_PACKET_PARSING */
-            DEBUG_PGM_PRINT("packet to send: ");
-            for (int i = 0; i < tx_ind; i++) {
-                DEBUG_PRINT((uint8_t) tx_buf[i], HEX);
-                DEBUG_PGM_PRINT(" ");
-            }
-            DEBUG_PRINTLN();
-        #endif
-        
-        digitalWrite(LED_ACT2, HIGH);
-        ledOffTime = millis() + 500L;
-        
-        // check for bus contention before sending
-        // 10 retries before failing (which should be *very* generous)
-        for (uint8_t retryCnt = 0; (retryCnt < 10) && (! sent_successfully); retryCnt++) {
-            // wait for line to become clear
-            boolean contention = false;
-            
-            // reset timer2 value
-            TCNT2 = 0;
-            
-            // check that the receive buffer doesn't get any data during the timer cycle
-            while ((TCNT2 < CONTENTION_TIMEOUT) && (! contention)) {
-                if (! (PIND & _BV(0))) { // pin was pulled low, so data being received
-                // if (UCSR0A & _BV(RXC0)) { // unread data in the RX buffer
-                    contention = true;
-                }
-            }
-            
-            if (contention) {
-                // someone's sending data; we cannot send
-                digitalWrite(LED_COLL, HIGH);
-                DEBUG_PGM_PRINT("CONTENTION SENDING ");
-                DEBUG_PRINTLN(retryCnt, DEC);
-
-                #if DEBUG && DEBUG_PACKET_PARSING
-                    uint8_t bytes_availble = Serial.available();
-                    if (bytes_availble) {
-                        DEBUG_PGM_PRINT("[pkt] buf contents: ");
-                        for (int i = 0; i < bytes_availble; i++) {
-                            DEBUG_PRINT(Serial.peek(i), HEX);
-                            DEBUG_PGM_PRINT(" ");
-                        }
-                        DEBUG_PRINTLN();
-                    }
-                #endif
-                
-                delay(20 * (retryCnt + 1));
-            }
-            else {
-                digitalWrite(LED_COLL, LOW);
-            
-                // disableSerialReceive();
-                // Serial.flush();
-            
-                for (int i = 0; i < tx_ind; i++) {
-                    Serial.write(tx_buf[i]);
-                }
-
-                // enableSerialReceive();
-
-                #if DEBUG && DEBUG_PACKET_PARSING
-                    DEBUG_PGM_PRINTLN("[pkt] done sending");
-                #endif
-
-                tx_ind = 0;
-            
-                sent_successfully = true;
-            }
+        if (! send_raw_ibus_packet(tx_buf, tx_ind)) {
+            DEBUG_PGM_PRINTLN("unable to send after repeated retries");
         }
     }
     
     free(data);
-    
-    if (! sent_successfully) {
-        DEBUG_PGM_PRINTLN("unable to send after repeated retries");
-    }
 }
 // }}}
 
@@ -1056,30 +1039,138 @@ int calc_checksum(uint8_t *buf, uint8_t buf_len) {
 }
 // }}}
 
-// {{{ set_state_active
-void set_state_active() {
-    // if we're transitioning to "on", wake up the iPod and
-    // start playing
-    if (! satelliteState.active) {
+// {{{ send_sdrs_device_ready_after_reset
+void send_sdrs_device_ready_after_reset() {
+    send_raw_ibus_packet_P(PSTR("\x73\x04\x68\x02\x01\x1c"), 6);
+}
+// }}}
+
+// {{{ send_sdrs_device_ready
+void send_sdrs_device_ready() {
+    send_raw_ibus_packet_P(PSTR("\x73\x04\x68\x02\x00\x1d"), 6);
+}
+// }}}
+
+// {{{ update_sdrs_status
+void update_sdrs_status() {
+    DEBUG_PGM_PRINTLN("updating status");
+    
+    send_sdrs_packet(ibus_data("\x3E\x02\x00..\x04"),
+                     NULL, true, true);
+}
+// }}}
+
+// {{{ update_sdrs_channel_text
+void update_sdrs_channel_text() {
+    DEBUG_PGM_PRINTLN("updating channel text");
+    
+    snprintf_P(channel_text_data, 9, PSTR("chan %3d"), satelliteState.channel);
+    send_sdrs_packet(ibus_data("\x3E\x01\x00..\x04"),
+                     channel_text_data, true, true);
+}
+// }}}
+
+// {{{ reset_ipod_state
+/*
+ * Resets out interpretation of the iPod's state and configures us to use the
+ * simple remote.
+ */
+void reset_ipod_state() {
+    advancedRemote.disable();
+    activeRemote = &simpleRemote;
+
+    iPodState.advancedRemoteEnabled = false;
+    
+    iPodState.present = false;
+    
+    iPodState.currentTrackLengthInMilliseconds = 0;
+    iPodState.currentTrackElapsedTimeInMilliseconds = 0;
+    iPodState.playbackStatus = AdvancedRemote::STATUS_STOPPED;
+    iPodState.playlistPosition = 0;
+    
+    free(iPodState.trackName);
+    iPodState.trackName = NULL;
+
+    free(iPodState.artistName);
+    iPodState.artistName = NULL;
+
+    free(iPodState.albumName);
+    iPodState.albumName = NULL;
+}
+// }}}
+
+// {{{ activate_ipod
+void activate_ipod() {
+    if (use_adv_remote) {
+        activeRemote = &advancedRemote;
+        advancedRemote.enable();
+        
+        advancedRemote.getTimeAndStatusInfo();
+                    
+        // @todo activate polling here?
+    } else {
         simpleRemote.sendiPodOn();
         delay(50);
         simpleRemote.sendButtonReleased();
 
         delay(50);
-        
+
         simpleRemote.sendJustPlay();
+        delay(50);
         simpleRemote.sendButtonReleased();
+    }
+}
+// }}}
+
+// {{{ set_state_active
+void set_state_active() {
+    // if we're transitioning to "on", wake up the iPod and
+    // start playing
+    
+    if (! satelliteState.active) {
+        reset_ipod_state();
+        
+        if (iPodState.present) {
+            activate_ipod();
+        }
     }
     
     satelliteState.active = true;
+                
+    // @todo experiment with returning 3E 01 instead of 3E 02; 01
+    // includes text…
+    
+    // commented for @todo above
+    // // text is ignored
+    // update_sdrs_status();
+    // 
+    // // might need to be longer; these two generally follow around
+    // // 1.5 to 2 seconds after 3E 02
+    // delay(100);
+    
+    update_sdrs_channel_text();
 }
 // }}}
 
 // {{{ set_state_inactive
 void set_state_inactive() {
-    // pause the iPod if we're transitioning to inactive
-    if (satelliteState.active) {
+    DEBUG_PGM_PRINTLN("responding to mode/power command");
+    send_sdrs_packet(ibus_data("\x3E\x00\x00\x1A\x11\x04"),
+                     NULL, false, false);
+
+    // we're transitioning to inactive:
+    //     pause the iPod if playing
+    //     disable the advanced remote
+    if (iPodState.advancedRemoteEnabled) {
+        if (iPodState.playbackStatus == AdvancedRemote::STATUS_PLAYING) {
+            advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
+        }
+        
+        advancedRemote.disable();
+        iPodState.advancedRemoteEnabled = false;
+    } else {
         simpleRemote.sendJustPause();
+        delay(50);
         simpleRemote.sendButtonReleased();
 
         delay(50);
@@ -1095,6 +1186,100 @@ void set_state_inactive() {
 
 // {{{ cancel_current_operation
 void cancel_current_operation() {
-    // @todo
+    if (satelliteState.scanning) {
+        satelliteState.scanning = false;
+    }
 }
 // }}}
+
+// ======= iPod handlers
+void FeedbackHandler(AdvancedRemote::Feedback feedback, byte cmd) {
+    // don't think this is useful, unless it will handle the mode switch,
+    // which I don't think is currently happening. But any feedback is good
+    // feedback, because it shows that the iPod is connected.
+    
+    iPodState.advancedRemoteEnabled = true;
+    
+    // @todo implement timeout so that when iPod disappears we react 
+    // accordingly
+}
+
+void iPodNameHandler(const char *ipodName) {
+    // free(iPodState.name);
+    // 
+    // iPodState.name = (char *) malloc(strlen(ipodName));
+    // 
+    // if (iPodState.name != NULL) {
+    //     strcpy(iPodState.name, ipodName)
+    // }
+}
+
+void ItemCountHandler(unsigned long count) {
+    
+}
+
+void ItemNameHandler(unsigned long offset, const char *itemName) {
+    
+}
+
+void TimeAndStatusHandler(unsigned long trackLengthInMilliseconds,
+                          unsigned long elapsedTimeInMilliseconds,
+                          AdvancedRemote::PlaybackStatus status)
+{
+    iPodState.currentTrackLengthInMilliseconds = trackLengthInMilliseconds;
+    iPodState.currentTrackElapsedTimeInMilliseconds = elapsedTimeInMilliseconds;
+
+    iPodState.playbackStatus = status;
+
+    // if the iPod's plugged in after the SDRS is active, make sure it plays
+    if (satelliteState.active && (iPodState.playbackStatus == AdvancedRemote::STATUS_PAUSED)) {
+        advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
+    }
+}
+
+void PlaylistPositionHandler(unsigned long playlistPosition) {
+    iPodState.playlistPosition = playlistPosition;
+}
+
+void TitleHandler(const char *title) {
+    free(iPodState.trackName);
+    
+    iPodState.trackName = (char *) malloc(strlen(title));
+    
+    if (iPodState.trackName != NULL) {
+        strcpy(iPodState.trackName, title)
+    }
+}
+
+void ArtistHandler(const char *artist) {
+    free(iPodState.trackName);
+    
+    iPodState.trackName = (char *) malloc(strlen(title));
+    
+    if (iPodState.trackName != NULL) {
+        strcpy(iPodState.trackName, title)
+    }
+}
+
+void AlbumHandler(const char *album) {
+    
+}
+
+void PollingHandler(AdvancedRemote::PollingCommand command,
+                    unsigned long playlistPositionOrelapsedTimeMs)
+{
+    
+}
+
+void ShuffleModeHandler(AdvancedRemote::ShuffleMode mode) {
+    
+}
+
+void RepeatModeHandler(AdvancedRemote::RepeatMode mode) {
+    
+}
+
+void CurrentPlaylistSongCountHandler(unsigned long count) {
+    
+}
+
