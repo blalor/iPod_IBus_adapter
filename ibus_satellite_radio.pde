@@ -12,14 +12,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "HardwareSerial.h"
-
-// #define IPOD_SERIAL_DEBUG 1
-#include <SimpleRemote.h>
-#include <AdvancedRemote.h>
-
 #include <NewSoftSerial.h>
 
+#include "iPodWrapper.h"
 #include "pgm_util.h"
 
 // @todo look into whether the preprocessor will magically convert 
@@ -104,37 +101,21 @@ uint8_t tx_buf[TX_BUF_LEN];
 // buffer for processing incoming packets; same size as serial buffer
 uint8_t rx_buf[RX_BUF_LEN];
 
+typedef enum __sdrs_status_enum {
+    SDRS_STATUS_UNKNOWN,
+    SDRS_STATUS_INACTIVE,
+    SDRS_STATUS_ACTIVE
+} SDRSStatusEnum;
+
 typedef struct __sat_state {
     uint8_t channel;
     uint8_t presetBank;
     uint8_t presetNum;
-    boolean active; // whether we're playing or not
+    SDRSStatusEnum status; // whether we're playing or not
     boolean scanning;
 } SatState;
 
-SatState satelliteState = {1, 1, 0, false, false};
-
-typedef struct __ipod_state {
-    // state flag to determine if we can see the iPod
-    boolean present;
-    
-    boolean advancedRemoteEnabled;
-    
-    unsigned long currentTrackLengthInMilliseconds;
-    unsigned long currentTrackElapsedTimeInMilliseconds;
-    AdvancedRemote::PlaybackStatus playbackStatus;
-    unsigned long playlistPosition;
-    
-    char *trackName;
-    char *artistName;
-    char *albumName;
-    
-    unsigned long lastTimeAndStatusUpdate;
-    unsigned long lastPollUpdate;
-    boolean trackChanged;
-} IPodState;
-
-IPodState iPodState;
+SatState satelliteState = {1, 1, 0, SDRS_STATUS_UNKNOWN, false};
 
 // timestamp of last poll from radio
 unsigned long lastPoll;
@@ -145,17 +126,8 @@ unsigned long ledOffTime;
 // timeout duration before giving up on a read
 unsigned long readTimeout;
 
-// NSS instance for the iPod
 NewSoftSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN);
-
-// the active iPodSerial instance
-iPodSerial *activeRemote;
-
-// iPod remote instances
-SimpleRemote simpleRemote;
-AdvancedRemote advancedRemote;
-
-const boolean use_adv_remote = true;
+IPodWrapper iPodWrapper;
 
 #if DEBUG
     NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
@@ -174,169 +146,6 @@ Print *console =
         NULL
     #endif
 ;
-
-// ======= iPod handlers
-void feedbackHandler(AdvancedRemote::Feedback feedback, byte cmd) {
-    // don't think this is useful, unless it will handle the mode switch,
-    // which I don't think is currently happening. But any feedback is good
-    // feedback, because it shows that the iPod is connected.
-    
-    iPodState.advancedRemoteEnabled = true;
-    
-    // @todo implement timeout so that when iPod disappears we react 
-    // accordingly
-    DEBUG_PGM_PRINT("got feedback for cmd ");
-    DEBUG_PRINT(cmd, HEX);
-    DEBUG_PGM_PRINT(", result ");
-    DEBUG_PRINTLN(feedback, HEX);
-}
-
-void iPodNameHandler(const char *ipodName) {
-    // free(iPodState.name);
-    // 
-    // iPodState.name = (char *) malloc(strlen(ipodName));
-    // 
-    // if (iPodState.name != NULL) {
-    //     strcpy(iPodState.name, ipodName)
-    // }
-}
-
-void itemCountHandler(unsigned long count) {
-    
-}
-
-void itemNameHandler(unsigned long offset, const char *itemName) {
-    
-}
-
-void timeAndStatusHandler(unsigned long trackLengthInMilliseconds,
-                          unsigned long elapsedTimeInMilliseconds,
-                          AdvancedRemote::PlaybackStatus status)
-{
-    iPodState.lastTimeAndStatusUpdate = millis();
-    
-    DEBUG_PGM_PRINT("time and status updated; playback status: ");
-    DEBUG_PRINTLN(status);
-    
-    DEBUG_PGM_PRINT("satellite is ");
-    if (! satelliteState.active) {
-        DEBUG_PGM_PRINT("in");
-    }
-    DEBUG_PGM_PRINTLN("active");
-    
-    iPodState.currentTrackLengthInMilliseconds = trackLengthInMilliseconds;
-    iPodState.currentTrackElapsedTimeInMilliseconds = elapsedTimeInMilliseconds;
-
-    iPodState.playbackStatus = status;
-    
-    if (iPodState.playbackStatus != AdvancedRemote::STATUS_STOPPED) {
-        advancedRemote.getPlaylistPosition();
-        delay(10);
-        advancedRemote.loop();
-    }
-
-    // if the iPod's plugged in after the SDRS is active, make sure it plays
-    if (satelliteState.active && (iPodState.playbackStatus == AdvancedRemote::STATUS_PAUSED)) {
-        advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
-    }
-}
-
-void playlistPositionHandler(unsigned long playlistPosition) {
-    DEBUG_PGM_PRINTLN("servicing playlist position update");
-    
-    // if (iPodState.playlistPosition != playlistPosition) {
-        iPodState.playlistPosition = playlistPosition;
-        
-        iPodState.trackChanged = true;
-        
-        advancedRemote.getTitle(iPodState.playlistPosition);
-    // }
-}
-
-void titleHandler(const char *title) {
-    free(iPodState.trackName);
-    
-    iPodState.trackName = (char *) malloc(strlen(title));
-    
-    if (iPodState.trackName != NULL) {
-        strcpy(iPodState.trackName, title);
-    }
-
-    DEBUG_PGM_PRINT("got track title: ");
-    DEBUG_PRINTLN(iPodState.trackName);
-    
-    advancedRemote.getArtist(iPodState.playlistPosition);
-}
-
-void artistHandler(const char *artist) {
-    free(iPodState.artistName);
-    
-    iPodState.artistName = (char *) malloc(strlen(artist));
-    
-    if (iPodState.artistName != NULL) {
-        strcpy(iPodState.artistName, artist);
-    }
-
-    DEBUG_PGM_PRINT("got artist title: ");
-    DEBUG_PRINTLN(iPodState.artistName);
-
-    advancedRemote.getAlbum(iPodState.playlistPosition);
-}
-
-void albumHandler(const char *album) {
-    free(iPodState.albumName);
-    
-    iPodState.albumName = (char *) malloc(strlen(album));
-    
-    if (iPodState.albumName != NULL) {
-        strcpy(iPodState.albumName, album);
-    }
-
-    DEBUG_PGM_PRINT("got album title: ");
-    DEBUG_PRINTLN(iPodState.albumName);
-}
-
-void pollingHandler(AdvancedRemote::PollingCommand command,
-                    unsigned long playlistPositionOrelapsedTimeMs)
-{
-    iPodState.lastTimeAndStatusUpdate = millis();
-    iPodState.lastPollUpdate = millis();
-
-    if (command == AdvancedRemote::POLLING_TRACK_CHANGE) {
-        DEBUG_PGM_PRINT("track change to: ");
-        DEBUG_PRINTLN(playlistPositionOrelapsedTimeMs, DEC);
-
-        playlistPositionHandler(playlistPositionOrelapsedTimeMs);
-    }
-    else if (command == AdvancedRemote::POLLING_ELAPSED_TIME) {
-        // unsigned long totalSecs = playlistPositionOrelapsedTimeMs / 1000;
-        // unsigned int mins = totalSecs / 60;
-        // unsigned int partialSecs = totalSecs % 60;
-        // 
-        // DEBUG_PGM_PRINT("elapsed time: ");
-        // DEBUG_PRINT(mins, DEC);
-        // DEBUG_PGM_PRINT("m ");
-        // DEBUG_PRINT(partialSecs, DEC);
-        // DEBUG_PGM_PRINTLN("s");
-    }
-    else {
-        DEBUG_PGM_PRINT("unknown polling command: ");
-        DEBUG_PRINTLN(playlistPositionOrelapsedTimeMs, DEC);
-    }
-}
-
-void shuffleModeHandler(AdvancedRemote::ShuffleMode mode) {
-    
-}
-
-void repeatModeHandler(AdvancedRemote::RepeatMode mode) {
-    
-}
-
-void currentPlaylistSongCountHandler(unsigned long count) {
-    
-}
-
 
 // {{{ setup
 void setup() {
@@ -360,35 +169,6 @@ void setup() {
     
     // indicate setup is underway
     digitalWrite(LED_ACT1, HIGH);
-    
-    // disable NSS's pull-up on the RX line; this can be done any time after
-    // the nssIPod object is created
-    digitalWrite(IPOD_RX_PIN, LOW);
-    
-    // baud rate for iPodSerial
-    nssIPod.begin(9600);
-
-    // don't call iPodSerial::setup(); only calls *Serial::begin(), which 
-    // we're already taking care of
-    // @todo verify still valid if iPodSerial is updated
-    simpleRemote.setSerial(nssIPod);
-    advancedRemote.setSerial(nssIPod);
-    
-    advancedRemote.setFeedbackHandler(feedbackHandler);
-    advancedRemote.setiPodNameHandler(iPodNameHandler);
-    advancedRemote.setItemCountHandler(itemCountHandler);
-    advancedRemote.setItemNameHandler(itemNameHandler);
-    advancedRemote.setTimeAndStatusHandler(timeAndStatusHandler);
-    advancedRemote.setPlaylistPositionHandler(playlistPositionHandler);
-    advancedRemote.setTitleHandler(titleHandler);
-    advancedRemote.setArtistHandler(artistHandler);
-    advancedRemote.setAlbumHandler(albumHandler);
-    advancedRemote.setPollingHandler(pollingHandler);
-    advancedRemote.setShuffleModeHandler(shuffleModeHandler);
-    advancedRemote.setRepeatModeHandler(repeatModeHandler);
-    advancedRemote.setCurrentPlaylistSongCountHandler(currentPlaylistSongCountHandler);
-    
-    reset_ipod_state();
     
     digitalWrite(LED_ACT1, LOW);
     digitalWrite(LED_ACT2, HIGH);
@@ -424,6 +204,17 @@ void setup() {
     // // @todo use this interrupt to wake the µC from sleep
     // attachInterrupt(0, configureForBusInhibition, CHANGE);    
     
+    // for notification when the currently-playing track changes
+    iPodWrapper.setTrackChangedHandler(trackChangedHandler);
+    iPodWrapper.setMetaDataChangedHandler(metaDataChangedHandler);
+    
+    // for notification when mode changes between simple and advanced
+    iPodWrapper.setModeChangedHandler(iPodModeChangedHandler);
+
+    iPodWrapper.init(&nssIPod, IPOD_RX_PIN);
+    
+    // iPodWrapper.setAdvanced();
+    
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("sending initial announcement");
     send_sdrs_device_ready_after_reset();
@@ -451,62 +242,7 @@ void loop() {
         digitalWrite(LED_ACT2, LOW);
     }
     
-    // attempt to test if an iPod's attached.  If the input's floating, this 
-    // could be a problem.
-    
-    // @todo what about a *very* weak pull-down, which should be overridden by
-    // the iPod's (presumed) pull-up?
-    
-    // advanced mode is only enabled after we've ascertained the presence of
-    // the iPod, and once the radio and SDRS are active.
-    if (! iPodState.advancedRemoteEnabled) {
-        if (digitalRead(IPOD_RX_PIN)) {
-            if (iPodState.present == false) {
-                // transition from not-found to found
-                DEBUG_PGM_PRINTLN("iPod found");
-                
-                iPodState.present = true;
-                
-                if (satelliteState.active) {
-                    activate_ipod();
-                } else {
-                    // the ipod will be activated when the SDRS becomes active
-                }
-            }
-        } else if (iPodState.present == true) {
-            // transition from found to not-found
-            DEBUG_PGM_PRINTLN("iPod went away");
-            
-            reset_ipod_state();
-        }
-    }
-    
-    // process incoming data from iPod; will be a no-op for simple remote
-    // iPodSerial::loop() only reads one byte at a time
-    while (nssIPod.available() > 0) {
-        activeRemote->loop();
-    }
-    
-    // WAG on the update interval; when polling's working, we get track 
-    // position updates every 500ms
-    if (iPodState.advancedRemoteEnabled) {
-        if (millis() > (iPodState.lastTimeAndStatusUpdate + 1000L)) {
-            DEBUG_PGM_PRINTLN("requesting time and status info");
-            advancedRemote.getTimeAndStatusInfo();
-            iPodState.lastTimeAndStatusUpdate = millis() + 250L;
-        }
-    
-        if (millis() > (iPodState.lastPollUpdate + 1000L)) {
-            DEBUG_PGM_PRINTLN("(re)starting polling");
-            advancedRemote.setPollingMode(AdvancedRemote::POLLING_START);
-            iPodState.lastPollUpdate = millis() + 250L;
-        }
-    }    
-    
-    if (iPodState.trackChanged) {
-        iPodState.trackChanged = false;
-        update_sdrs_channel_text();
-    }
+    iPodWrapper.update();
     
     // can't do anything while the bus is asleep.
     if (bus_inhibited) {
@@ -550,7 +286,7 @@ inline void enableSerialReceive() {
 // }}}
 
 // {{{ configureForBusInhibition
-/**
+/*
  * If the I-Bus is alive, enable the RX hardware.  If it's not, shut down
  * the RX hardware and flush the buffer.
  */
@@ -773,7 +509,7 @@ void dispatch_packet(const uint8_t *packet) {
                 // -or-
                 //   73 .. 68 3E 00 00 95 20 04
                 
-                DEBUG_PGM_PRINT("got power command, ");
+                DEBUG_PGM_PRINT("[cmd] power, ");
                 DEBUG_PRINTLN(packet[5], HEX);
                 
                 set_state_inactive();
@@ -789,7 +525,7 @@ void dispatch_packet(const uint8_t *packet) {
                 // -or-
                 //   73 .. 68 3E 00 00 95 20 04
                 
-                DEBUG_PGM_PRINT("[cmd] got mode command, ");
+                DEBUG_PGM_PRINT("[cmd] mode, ");
                 DEBUG_PRINTLN(packet[5], HEX);
             
                 set_state_inactive();
@@ -800,14 +536,14 @@ void dispatch_packet(const uint8_t *packet) {
                 // on the radio to select SIRIUS. It is also sent
                 // periodically if we don't respond quickly enough with an
                 // updated display command (3D 01 00 …)
-                DEBUG_PGM_PRINTLN("got \"now\"");
+                DEBUG_PGM_PRINTLN("[cmd] \"now\"");
                 
                 cancel_current_operation();
                 set_state_active();
             }
             else if (packet[4] == SDRS_CMD_CHAN_UP) {
                 // <3D 03>
-                DEBUG_PGM_PRINTLN("[cmd] got channel up");
+                DEBUG_PGM_PRINTLN("[cmd] channel up");
                 
                 handle_buttons(packet[4], packet[5]);
                 
@@ -820,7 +556,7 @@ void dispatch_packet(const uint8_t *packet) {
             }
             else if (packet[4] == SDRS_CMD_CHAN_DOWN) {
                 // <3D 04>
-                DEBUG_PGM_PRINTLN("[cmd] got channel down");
+                DEBUG_PGM_PRINTLN("[cmd] channel down");
                 
                 handle_buttons(packet[4], packet[5]);
                 
@@ -834,16 +570,19 @@ void dispatch_packet(const uint8_t *packet) {
             }
             else if (packet[4] == SDRS_CMD_CHAN_UP_HOLD) {
                 // <3D 05>
+                DEBUG_PGM_PRINTLN("[cmd] channel up hold");
                 
                 // @todo
             }
             else if (packet[4] == SDRS_CMD_CHAN_DOWN_HOLD) {
                 // <3D 06>
+                DEBUG_PGM_PRINTLN("[cmd] channel down hold");
 
                 // @todo
             }
             else if (packet[4] == SDRS_CMD_PRESET) {
                 // <3D 08>
+                DEBUG_PGM_PRINTLN("[cmd] preset recall");
                 
                 handle_buttons(packet[4], packet[5]);
                 
@@ -856,6 +595,7 @@ void dispatch_packet(const uint8_t *packet) {
             }
             else if (packet[4] == SDRS_CMD_PRESET_HOLD) {
                 // <3D 09>
+                DEBUG_PGM_PRINTLN("[cmd] preset set");
                 
                 handle_buttons(packet[4], packet[5]);
                 
@@ -866,27 +606,25 @@ void dispatch_packet(const uint8_t *packet) {
             }
             else if (packet[4] == SDRS_CMD_INF1) {
                 // <3D 0E>
-                DEBUG_PGM_PRINTLN("got first inf press");
+                DEBUG_PGM_PRINTLN("[cmd] first inf press");
                 
                 // send artist
-                
                 send_sdrs_packet(ibus_data("\x3E\x01\x06.\x01\x01"),
-                                 iPodState.artistName,
+                                 iPodWrapper.getArtist(),
                                  true, false);
             }
             else if (packet[4] == SDRS_CMD_INF2) {
                 // <3D 0F>
-                DEBUG_PGM_PRINTLN("got second inf press");
+                DEBUG_PGM_PRINTLN("[cmd] second inf press");
                 
                 // send album name
-                
                 send_sdrs_packet(ibus_data("\x3E\x01\x07.\x01\x01"),
-                                 iPodState.albumName,
+                                 iPodWrapper.getAlbum(),
                                  true, false);
             }
             else if (packet[4] == SDRS_CMD_ESN_REQ) {
                 // <3D 14>
-                DEBUG_PGM_PRINTLN("got ESN request");
+                DEBUG_PGM_PRINTLN("[cmd] ESN request");
                 
                 // 9 chars displayed, max, prefixed on display with "000"
                 // @todo send ipod name?
@@ -896,7 +634,7 @@ void dispatch_packet(const uint8_t *packet) {
             }
             else if (packet[4] == SDRS_CMD_SAT) {
                 // <3D 15>
-                DEBUG_PGM_PRINTLN("got SAT");
+                DEBUG_PGM_PRINTLN("[cmd] SAT");
                 
                 satelliteState.presetBank += 1;
                 if (satelliteState.presetBank > 3) {
@@ -905,12 +643,11 @@ void dispatch_packet(const uint8_t *packet) {
                 
                 // @todo perform some activity
                 
-                // send text update instead of <3E 02> ACK; think this'll work…
-                update_sdrs_channel_text();
+                update_sdrs_status();
             }
             else if (packet[4] == SDRS_CMD_START_SCAN) {
                 // <3D 07>
-                DEBUG_PGM_PRINTLN("starting scan");
+                DEBUG_PGM_PRINTLN("[cmd] starting scan");
                 
                 satelliteState.scanning = true;
             }
@@ -929,14 +666,12 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
     switch(button_id) {
         case 0x03: // — channel up
             satelliteState.channel += 1;
-            simpleRemote.sendSkipForward();
-            simpleRemote.sendButtonReleased();
+            iPodWrapper.nextTrack();
             break;
         
         case 0x04: // — channel down
             satelliteState.channel -= 1;
-            simpleRemote.sendSkipBackward();
-            simpleRemote.sendButtonReleased();
+            iPodWrapper.prevTrack();
             break;
         
         case 0x08: // — preset button pressed
@@ -945,13 +680,11 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
             break;
         
         case 0x05: // — channel up and hold
-            simpleRemote.sendNextAlbum();
-            simpleRemote.sendButtonReleased();
+            iPodWrapper.nextAlbum();
             break;
             
         case 0x06: // — channel down and hold
-            simpleRemote.sendPreviousAlbum();
-            simpleRemote.sendButtonReleased();
+            iPodWrapper.prevAlbum();
             break;
         
         case 0x09: // — preset button press and hold
@@ -1251,10 +984,14 @@ void update_sdrs_status() {
 void update_sdrs_channel_text() {
     DEBUG_PGM_PRINTLN("updating channel text");
 
-    if (iPodState.trackName == NULL) {
-        strncpy_P(channel_text_data, PSTR("unknown"), 10);
+    if (iPodWrapper.isPresent()) {
+        if (iPodWrapper.isAdvancedModeActive() && (iPodWrapper.getTitle() != NULL)) {
+            strncpy(channel_text_data, iPodWrapper.getTitle(), 10);
+        } else {
+            strncpy_P(channel_text_data, PSTR("playing"), 10);
+        }
     } else {
-        strncpy(channel_text_data, iPodState.trackName, 10);
+        strncpy_P(channel_text_data, PSTR("no iPod"), 10);
     }
     
     send_sdrs_packet(ibus_data("\x3E\x01\x00..\x04"),
@@ -1262,92 +999,15 @@ void update_sdrs_channel_text() {
 }
 // }}}
 
-void switch_to_advanced_remote() {
-    activeRemote = &advancedRemote;
-    advancedRemote.enable();
-
-    iPodState.advancedRemoteEnabled = true;
-}
-
-void switch_to_simple_remote() {
-    advancedRemote.disable();
-    activeRemote = &simpleRemote;
-
-    iPodState.advancedRemoteEnabled = false;
-}
-
-// {{{ reset_ipod_state
-/*
- * Resets out interpretation of the iPod's state and configures us to use the
- * simple remote.
- */
-void reset_ipod_state() {
-    switch_to_simple_remote();
-    
-    iPodState.present = false;
-    
-    iPodState.currentTrackLengthInMilliseconds = 0;
-    iPodState.currentTrackElapsedTimeInMilliseconds = 0;
-    iPodState.playbackStatus = AdvancedRemote::STATUS_STOPPED;
-    iPodState.playlistPosition = 0;
-    
-    free(iPodState.trackName);
-    iPodState.trackName = NULL;
-    free(iPodState.artistName);
-    iPodState.artistName = NULL;
-    free(iPodState.albumName);
-    iPodState.albumName = NULL;
-    
-    iPodState.lastTimeAndStatusUpdate = 0;
-    iPodState.lastPollUpdate = 0;
-    iPodState.trackChanged = false;
-}
-// }}}
-
-// {{{ activate_ipod
-void activate_ipod() {
-    DEBUG_PGM_PRINTLN("activating iPod");
-    
-    if (use_adv_remote) {
-        DEBUG_PGM_PRINTLN("using advanced remote");
-        
-        switch_to_advanced_remote();
-        
-        advancedRemote.getTimeAndStatusInfo();
-        delay(10);
-        advancedRemote.loop();
-
-        // @todo activate polling here?
-        advancedRemote.setPollingMode(AdvancedRemote::POLLING_START);
-        iPodState.lastPollUpdate = millis();
-    } else {
-        simpleRemote.sendiPodOn();
-        delay(50);
-        simpleRemote.sendButtonReleased();
-
-        delay(50);
-
-        simpleRemote.sendJustPlay();
-        delay(50);
-        simpleRemote.sendButtonReleased();
-    }
-}
-// }}}
-
 // {{{ set_state_active
 void set_state_active() {
-    // if we're transitioning to "on", wake up the iPod and
-    // start playing
-    
-    if (! satelliteState.active) {
-        reset_ipod_state();
+    if (satelliteState.status != SDRS_STATUS_ACTIVE) {
+        // if we're transitioning to "on", wake up the iPod and start playing
         
-        if (iPodState.present) {
-            activate_ipod();
-        }
+        iPodWrapper.play();
     }
     
-    satelliteState.active = true;
+    satelliteState.status = SDRS_STATUS_ACTIVE;
                 
     // @todo experiment with returning 3E 01 instead of 3E 02; 01
     // includes text…
@@ -1370,28 +1030,9 @@ void set_state_inactive() {
     send_sdrs_packet(ibus_data("\x3E\x00\x00\x1A\x11\x04"),
                      NULL, false, false);
 
-    // we're transitioning to inactive:
-    //     pause the iPod if playing
-    //     disable the advanced remote
-    if (iPodState.advancedRemoteEnabled) {
-        if (iPodState.playbackStatus == AdvancedRemote::STATUS_PLAYING) {
-            advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
-        }
-        
-        switch_to_simple_remote();
-    } else {
-        simpleRemote.sendJustPause();
-        delay(50);
-        simpleRemote.sendButtonReleased();
-
-        delay(50);
-
-        simpleRemote.sendiPodOff();
-        delay(50);
-        simpleRemote.sendButtonReleased();
-    }
+    iPodWrapper.pause();
     
-    satelliteState.active = false;
+    satelliteState.status = SDRS_STATUS_INACTIVE;
 }
 // }}}
 
@@ -1403,3 +1044,36 @@ void cancel_current_operation() {
 }
 // }}}
 
+// {{{ trackChangedHandler
+void trackChangedHandler(unsigned long playlistPosition) {
+    satelliteState.channel = (uint8_t) playlistPosition;
+    update_sdrs_status();
+}
+// }}}
+
+// {{{ metaDataChangedHandler
+void metaDataChangedHandler() {
+    update_sdrs_channel_text();
+}
+// }}}
+
+// {{{ iPodModeChangedHandler
+// for notification when mode changes between simple and advanced
+void iPodModeChangedHandler(IPodWrapper::IPodMode mode) {
+    // MODE_UNKNOWN,
+    // MODE_SIMPLE,
+    // MODE_ADVANCED
+
+    #if DEBUG
+        if (mode == IPodWrapper::MODE_UNKNOWN) {
+            DEBUG_PGM_PRINTLN("iPod went away!");
+        } else if (mode == IPodWrapper::MODE_SIMPLE) {
+            DEBUG_PGM_PRINTLN("iPod switched to simple mode");
+        } else if (mode == IPodWrapper::MODE_ADVANCED) {
+            DEBUG_PGM_PRINTLN("iPod switched to advanced mode");
+        }
+    #endif
+    
+    update_sdrs_channel_text();
+}
+// }}}
