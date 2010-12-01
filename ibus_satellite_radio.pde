@@ -71,9 +71,6 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 #define SDRS_CMD_ESN_REQ        0x14 // SAT press and hold; ESN request
 #define SDRS_CMD_SAT            0x15 // SAT press; preset bank change
 
-// number of times to retry sending messages if verification fails
-#define TX_RETRY_COUNT 2
-
 // there may well be a protocol-imposed limit to the max value of a length
 // byte in a packet, but it looks like this is the biggest we'll see in
 // practice.  Use this as a sort of heuristic to determine if the incoming
@@ -461,7 +458,7 @@ void loop() {
     // the iPod's (presumed) pull-up?
     
     // advanced mode is only enabled after we've ascertained the presence of
-    // the iPod, and once the radio and SDRS ard active.
+    // the iPod, and once the radio and SDRS are active.
     if (! iPodState.advancedRemoteEnabled) {
         if (digitalRead(IPOD_RX_PIN)) {
             if (iPodState.present == false) {
@@ -485,21 +482,26 @@ void loop() {
     }
     
     // process incoming data from iPod; will be a no-op for simple remote
-    activeRemote->loop();
+    // iPodSerial::loop() only reads one byte at a time
+    while (nssIPod.available() > 0) {
+        activeRemote->loop();
+    }
     
     // WAG on the update interval; when polling's working, we get track 
     // position updates every 500ms
-    if (iPodState.advancedRemoteEnabled && (millis() > (iPodState.lastTimeAndStatusUpdate + 1000L))) {
-        DEBUG_PGM_PRINTLN("requesting time and status info");
-        advancedRemote.getTimeAndStatusInfo();
-        iPodState.lastTimeAndStatusUpdate = millis() + 250L;
-    }
+    if (iPodState.advancedRemoteEnabled) {
+        if (millis() > (iPodState.lastTimeAndStatusUpdate + 1000L)) {
+            DEBUG_PGM_PRINTLN("requesting time and status info");
+            advancedRemote.getTimeAndStatusInfo();
+            iPodState.lastTimeAndStatusUpdate = millis() + 250L;
+        }
     
-    if (iPodState.advancedRemoteEnabled && (millis() > (iPodState.lastPollUpdate + 1000L))) {
-        DEBUG_PGM_PRINTLN("(re)starting polling");
-        advancedRemote.setPollingMode(AdvancedRemote::POLLING_START);
-        iPodState.lastPollUpdate = millis() + 250L;
-    }
+        if (millis() > (iPodState.lastPollUpdate + 1000L)) {
+            DEBUG_PGM_PRINTLN("(re)starting polling");
+            advancedRemote.setPollingMode(AdvancedRemote::POLLING_START);
+            iPodState.lastPollUpdate = millis() + 250L;
+        }
+    }    
     
     if (iPodState.trackChanged) {
         iPodState.trackChanged = false;
@@ -1260,16 +1262,27 @@ void update_sdrs_channel_text() {
 }
 // }}}
 
+void switch_to_advanced_remote() {
+    activeRemote = &advancedRemote;
+    advancedRemote.enable();
+
+    iPodState.advancedRemoteEnabled = true;
+}
+
+void switch_to_simple_remote() {
+    advancedRemote.disable();
+    activeRemote = &simpleRemote;
+
+    iPodState.advancedRemoteEnabled = false;
+}
+
 // {{{ reset_ipod_state
 /*
  * Resets out interpretation of the iPod's state and configures us to use the
  * simple remote.
  */
 void reset_ipod_state() {
-    advancedRemote.disable();
-    activeRemote = &simpleRemote;
-
-    iPodState.advancedRemoteEnabled = false;
+    switch_to_simple_remote();
     
     iPodState.present = false;
     
@@ -1298,9 +1311,7 @@ void activate_ipod() {
     if (use_adv_remote) {
         DEBUG_PGM_PRINTLN("using advanced remote");
         
-        activeRemote = &advancedRemote;
-        advancedRemote.enable();
-        iPodState.advancedRemoteEnabled = true;
+        switch_to_advanced_remote();
         
         advancedRemote.getTimeAndStatusInfo();
         delay(10);
@@ -1367,8 +1378,7 @@ void set_state_inactive() {
             advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
         }
         
-        advancedRemote.disable();
-        iPodState.advancedRemoteEnabled = false;
+        switch_to_simple_remote();
     } else {
         simpleRemote.sendJustPause();
         delay(50);
