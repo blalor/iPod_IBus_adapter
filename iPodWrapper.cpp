@@ -1,3 +1,4 @@
+#define DEBUG 1
 #include "iPodWrapper.h"
 
 #include "pgm_util.h"
@@ -12,6 +13,24 @@ IPodWrapper::IPodWrapper() {
     pTrackChangedHandler = NULL;
     pMetaDataChangedHandler = NULL;
     pIPodModeChangedHandler = NULL;
+}
+// }}}
+
+// {{{ IPodWrapper::setTrackChangedHandler
+void IPodWrapper::setTrackChangedHandler(TrackChangedHandler_t newHandler) {
+    pTrackChangedHandler = newHandler;
+}
+// }}}
+
+// {{{ IPodWrapper::setMetaDataChangedHandler
+void IPodWrapper::setMetaDataChangedHandler(MetaDataChangedHandler_t newHandler) {
+    pMetaDataChangedHandler = newHandler;
+}
+// }}}
+
+// {{{ IPodWrapper::setModeChangedHandler
+void IPodWrapper::setModeChangedHandler(IPodModeChangedHandler_t newHandler) {
+    pIPodModeChangedHandler = newHandler;
 }
 // }}}
 
@@ -30,16 +49,18 @@ void IPodWrapper::init(NewSoftSerial *_nss, uint8_t _rxPin) {
     // don't call iPodSerial::setup(); only calls *Serial::begin(), which 
     // we're already taking care of
     // @todo verify still valid if iPodSerial is updated
-    simpleRemote.setSerial(nss);
-    advancedRemote.setSerial(nss);
+    simpleRemote.setSerial(*nss);
+    advancedRemote.setSerial(*nss);
     
-    advancedRemote.setFeedbackHandler(feedbackHandler);
-    advancedRemote.setTimeAndStatusHandler(timeAndStatusHandler);
-    advancedRemote.setPlaylistPositionHandler(playlistPositionHandler);
-    advancedRemote.setTitleHandler(titleHandler);
-    advancedRemote.setArtistHandler(artistHandler);
-    advancedRemote.setAlbumHandler(albumHandler);
-    advancedRemote.setPollingHandler(pollingHandler);
+    #if DEBUG
+        // simpleRemote.setLogPrint(*console);
+        // simpleRemote.setDebugPrint(*console);
+        // advancedRemote.setLogPrint(*console);
+        // advancedRemote.setDebugPrint(*console);
+    #endif
+    
+    // enable remote callbacks
+    advancedRemote.setListener(this);
     
     reset();
 }
@@ -123,7 +144,6 @@ void IPodWrapper::setAdvanced() {
     activeRemote = &advancedRemote;
     advancedRemote.enable();
     
-    // @todo set mode in the feedback handler
     mode = MODE_SWITCHING_TO_ADVANCED;
     
     advancedRemote.getTimeAndStatusInfo();
@@ -134,8 +154,8 @@ void IPodWrapper::setAdvanced() {
 
 // {{{ IPodWrapper::updateAdvancedModeExpirationTimestamp
 void IPodWrapper::updateAdvancedModeExpirationTimestamp() {
-    // 500ms to switch to advanced
-    advancedModeExpirationTimestamp = millis() + 500L;
+    // allow enough time to handle call/response when paused/stopped
+    advancedModeExpirationTimestamp = millis() + 2000L;
 }
 // }}}
 
@@ -161,7 +181,7 @@ void IPodWrapper::update() {
     if (mode == MODE_UNKNOWN) {
         if (digitalRead(rxPin)) {
             // transition from not-found to found
-            DEBUG_PGM_PRINTLN("iPod found");
+            // DEBUG_PGM_PRINTLN("[wrap] iPod found");
             
             nss->flush();
             
@@ -171,7 +191,7 @@ void IPodWrapper::update() {
     else if (mode == MODE_SIMPLE) {
         if (! digitalRead(rxPin)) {
             // transition from found to not-found
-            DEBUG_PGM_PRINTLN("iPod went away in simple mode");
+            // DEBUG_PGM_PRINTLN("[wrap] iPod went away in simple mode");
             
             reset();
         }
@@ -187,7 +207,7 @@ void IPodWrapper::update() {
         // advanced mode
         if (millis() > advancedModeExpirationTimestamp) {
             // transition from found to not-found
-            DEBUG_PGM_PRINTLN("iPod went away in (or never entered into) advanced mode");
+            DEBUG_PGM_PRINTLN("[wrap] iPod went away in (or never entered into) advanced mode");
             
             reset();
         }
@@ -196,6 +216,10 @@ void IPodWrapper::update() {
     if ((oldMode == MODE_SWITCHING_TO_ADVANCED) && (mode == MODE_ADVANCED)) {
         // successfully switched to advanced mode; start polling
         advancedRemote.setPollingMode(AdvancedRemote::POLLING_START);
+        
+        // @todo if we need a little more time for the iPod to process the 
+        // switch, update the timestamp here, too.
+        // updateAdvancedModeExpirationTimestamp();
     }
     
     if ((oldMode != mode) && (pIPodModeChangedHandler != NULL)) {
@@ -205,25 +229,38 @@ void IPodWrapper::update() {
     if (isPresent()) {
         syncPlayingState();
 
-        // WAG on the update interval; when polling's working, we get track 
-        // position updates every 500ms
         if (isAdvancedModeActive()) {
+            // DEBUG_PGM_PRINTLN("[wrap] advanced mode is active");
+            
             if (metaUpdateInProgress && (updateMetaState == UPDATE_META_DONE)) {
                 if (pMetaDataChangedHandler != NULL) {
                     pMetaDataChangedHandler();
                 }
             }
             
-            // @todo if (millis() > (iPodState.lastTimeAndStatusUpdate + 1000L)) {
-            // @todo     DEBUG_PGM_PRINTLN("requesting time and status info");
-            // @todo     advancedRemote.getTimeAndStatusInfo();
-            // @todo     iPodState.lastTimeAndStatusUpdate = millis() + 250L;
-            // @todo }
-            // @todo     
+            // DEBUG_PGM_PRINT("[wrap] advancedModeExpirationTimestamp: ");
+            // DEBUG_PRINT(advancedModeExpirationTimestamp, DEC);
+            // DEBUG_PGM_PRINT(", millis: ");
+            // DEBUG_PRINTLN(millis(), DEC);
+            
+            // this expiration timestamp is more difficult to figure out than
+            // I figured it would be. When polling's enabled, we get an 
+            // update every 500ms, but ONLY WHEN PLAYING.  So when we're not playing
+            // we need to request info from the iPod periodically to make 
+            // sure it's still alive.  It can take quite a while to get back 
+            // to this update loop, so invoke the keep-alive when not playing
+            // with enough time to catch the response before timing out.
+            if (
+                ((advancedModeExpirationTimestamp - millis()) < 750L) &&
+                (currentPlayingState != PLAY_STATE_PLAYING))
+            {
+                DEBUG_PGM_PRINTLN("[wrap] requesting time and status info for keep-alive");
+                advancedRemote.getTimeAndStatusInfo();
+            }
+            
             // @todo if (millis() > (iPodState.lastPollUpdate + 1000L)) {
             // @todo     DEBUG_PGM_PRINTLN("(re)starting polling");
             // @todo     advancedRemote.setPollingMode(AdvancedRemote::POLLING_START);
-            // @todo     iPodState.lastPollUpdate = millis() + 250L;
             // @todo }
         }    
     } else {
@@ -244,28 +281,91 @@ void IPodWrapper::pause() {
 }
 // }}}
 
+// {{{ IPodWrapper::nextTrack
+void IPodWrapper::nextTrack() {
+    if (isAdvancedModeActive()) {
+        advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_SKIP_FORWARD);
+    } else {
+        simpleRemote.sendSkipForward();
+        delay(50);
+        simpleRemote.sendButtonReleased();
+    }
+}
+// }}}
+
+// {{{ IPodWrapper::prevTrack
+void IPodWrapper::prevTrack() {
+    if (isAdvancedModeActive()) {
+        advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_SKIP_BACKWARD);
+    } else {
+        simpleRemote.sendSkipBackward();
+        delay(50);
+        simpleRemote.sendButtonReleased();
+    }
+}
+// }}}
+
+// {{{ IPodWrapper::nextAlbum
+void IPodWrapper::nextAlbum() {
+    if (isAdvancedModeActive()) {
+        // advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_SKIP_BACKWARD);
+        // @todo
+    } else {
+        simpleRemote.sendNextAlbum();
+        delay(50);
+        simpleRemote.sendButtonReleased();
+    }
+}
+// }}}
+
+// {{{ IPodWrapper::prevAlbum
+void IPodWrapper::prevAlbum() {
+    if (isAdvancedModeActive()) {
+        // advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_SKIP_BACKWARD);
+        // @todo
+    } else {
+        simpleRemote.sendPreviousAlbum();
+        delay(50);
+        simpleRemote.sendButtonReleased();
+    }
+}
+// }}}
+
 // {{{ IPodWrapper::syncPlayingState
 void IPodWrapper::syncPlayingState() {
     if (isPresent() && (requestedPlayingState != currentPlayingState))  {
-        // we're gonna play stupid and just try the simple remote commands
         
         if (requestedPlayingState == PLAY_STATE_PLAYING) {
-            simpleRemote.sendiPodOn();
-            delay(50);
-            simpleRemote.sendButtonReleased();
+            DEBUG_PGM_PRINTLN("[wrap] playing state mismatch; setting iPod to play");
+            
+            if (isAdvancedModeActive()) {
+                advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
+            } else {
+                simpleRemote.sendiPodOn();
+                delay(50);
+                simpleRemote.sendButtonReleased();
 
-            delay(50);
+                delay(50);
 
-            simpleRemote.sendJustPlay();
-            delay(50);
-            simpleRemote.sendButtonReleased();
+                simpleRemote.sendJustPlay();
+                delay(50);
+                simpleRemote.sendButtonReleased();
+            }
         } else {
             // paused or stopped; just go with paused
+            DEBUG_PGM_PRINTLN("[wrap] playing state mismatch; setting iPod to paused");
 
-            simpleRemote.sendJustPause();
-            delay(50);
-            simpleRemote.sendButtonReleased();
+            if (isAdvancedModeActive()) {
+                advancedRemote.controlPlayback(AdvancedRemote::PLAYBACK_CONTROL_PLAY_PAUSE);
+            } else {
+                simpleRemote.sendJustPause();
+                delay(50);
+                simpleRemote.sendButtonReleased();
+            }
         }
+        
+        // just because?
+        updateAdvancedModeExpirationTimestamp();
     }
     
     currentPlayingState = requestedPlayingState;
@@ -273,26 +373,27 @@ void IPodWrapper::syncPlayingState() {
 // }}}
 
 // ======= iPod handlers
-// {{{ IPodWrapper::feedbackHandler
-void IPodWrapper::feedbackHandler(AdvancedRemote::Feedback feedback, byte cmd) {
+
+// {{{ IPodWrapper::handleFeedback
+void IPodWrapper::handleFeedback(AdvancedRemote::Feedback feedback, byte cmd) {
     // don't think this is useful, unless it will handle the mode switch,
     // which I don't think is currently happening. But any feedback is good
     // feedback, because it shows that the iPod is connected.
-    
-    // advancedActive = true;
-    
-    // @todo implement timeout so that when iPod disappears we react 
-    // accordingly
-    DEBUG_PGM_PRINT("got feedback for cmd ");
+
+    DEBUG_PGM_PRINT("[wrap] got feedback for cmd ");
     DEBUG_PRINT(cmd, HEX);
     DEBUG_PGM_PRINT(", result ");
     DEBUG_PRINTLN(feedback, HEX);
+    
+    if (feedback == AdvancedRemote::FEEDBACK_SUCCESS) {
+        updateAdvancedModeExpirationTimestamp();
+    }
 }
 
-// {{{ IPodWrapper::timeAndStatusHandler
-void IPodWrapper::timeAndStatusHandler(unsigned long trackLengthInMilliseconds,
-                                       unsigned long elapsedTimeInMilliseconds,
-                                       AdvancedRemote::PlaybackStatus status)
+// {{{ IPodWrapper::handleTimeAndStatus
+void IPodWrapper::handleTimeAndStatus(unsigned long trackLengthInMilliseconds,
+                                              unsigned long elapsedTimeInMilliseconds,
+                                              AdvancedRemote::PlaybackStatus status)
 {
     // this is the first method invoked after entering into
     // MODE_SWITCHING_TO_ADVANCED; confirm that advanced is now active.
@@ -302,33 +403,37 @@ void IPodWrapper::timeAndStatusHandler(unsigned long trackLengthInMilliseconds,
     
     updateAdvancedModeExpirationTimestamp();
         
-    DEBUG_PGM_PRINT("time and status updated; playback status: ");
-    DEBUG_PRINTLN(status);
+    DEBUG_PGM_PRINT("[wrap] time and status updated; playback status: ");
     
-    currentTrackLengthInMilliseconds = trackLengthInMilliseconds;
-    currentTrackElapsedTimeInMilliseconds = elapsedTimeInMilliseconds;
+    // currentTrackLengthInMilliseconds = trackLengthInMilliseconds;
+    // currentTrackElapsedTimeInMilliseconds = elapsedTimeInMilliseconds;
 
-    if (status == AdvancedRemote::PLAYBACK_CONTROL_STOPPED) {
+    if (status == AdvancedRemote::STATUS_STOPPED) {
         currentPlayingState = PLAY_STATE_STOPPED;
-    } else if (status == AdvancedRemote::PLAYBACK_CONTROL_PLAYING) {
+        DEBUG_PGM_PRINTLN("stopped");
+    } else if (status == AdvancedRemote::STATUS_PLAYING) {
         currentPlayingState = PLAY_STATE_PLAYING;
-    } else if (status == AdvancedRemote::PLAYBACK_CONTROL_PAUSED) {
+        DEBUG_PGM_PRINTLN("playing");
+    } else if (status == AdvancedRemote::STATUS_PAUSED) {
         currentPlayingState = PLAY_STATE_PAUSED;
+        DEBUG_PGM_PRINTLN("paused");
     } else {
         currentPlayingState = PLAY_STATE_UNKNOWN;
+        DEBUG_PGM_PRINTLN("unknown");
     }
 
     if (currentPlayingState != PLAY_STATE_STOPPED) {
+        // DEBUG_PGM_PRINTLN("[wrap] requesting playlist position");
         advancedRemote.getPlaylistPosition();
     }
 }
 // }}}
 
-// {{{ IPodWrapper::playlistPositionHandler
-void IPodWrapper::playlistPositionHandler(unsigned long _playlistPosition) {
+// {{{ IPodWrapper::handlePlaylistPosition
+void IPodWrapper::handlePlaylistPosition(unsigned long _playlistPosition) {
     updateAdvancedModeExpirationTimestamp();
 
-    DEBUG_PGM_PRINTLN("servicing playlist position update");
+    // DEBUG_PGM_PRINTLN("[wrap] servicing playlist position update");
     
     if (playlistPosition != _playlistPosition) {
         playlistPosition = _playlistPosition;
@@ -352,8 +457,8 @@ void IPodWrapper::playlistPositionHandler(unsigned long _playlistPosition) {
 }
 // }}}
 
-// {{{ IPodWrapper::titleHandler
-void IPodWrapper::titleHandler(const char *title) {
+// {{{ IPodWrapper::handleTitle
+void IPodWrapper::handleTitle(const char *title) {
     free(trackName);
     
     trackName = (char *) malloc(strlen(title));
@@ -362,7 +467,7 @@ void IPodWrapper::titleHandler(const char *title) {
         strcpy(trackName, title);
     }
 
-    DEBUG_PGM_PRINT("got track title: ");
+    DEBUG_PGM_PRINT("[wrap] got track title: ");
     DEBUG_PRINTLN(trackName);
     
     updateMetaState = UPDATE_META_ARTIST;
@@ -370,8 +475,8 @@ void IPodWrapper::titleHandler(const char *title) {
 }
 // }}}
 
-// {{{ IPodWrapper::artistHandler
-void IPodWrapper::artistHandler(const char *artist) {
+// {{{ IPodWrapper::handleArtist
+void IPodWrapper::handleArtist(const char *artist) {
     free(artistName);
     
     artistName = (char *) malloc(strlen(artist));
@@ -380,7 +485,7 @@ void IPodWrapper::artistHandler(const char *artist) {
         strcpy(artistName, artist);
     }
 
-    DEBUG_PGM_PRINT("got artist title: ");
+    DEBUG_PGM_PRINT("[wrap] got artist title: ");
     DEBUG_PRINTLN(artistName);
 
     updateMetaState = UPDATE_META_ALBUM;
@@ -388,8 +493,8 @@ void IPodWrapper::artistHandler(const char *artist) {
 }
 // }}}
 
-// {{{ IPodWrapper::albumHandler
-void IPodWrapper::albumHandler(const char *album) {
+// {{{ IPodWrapper::handleAlbum
+void IPodWrapper::handleAlbum(const char *album) {
     free(albumName);
     
     albumName = (char *) malloc(strlen(album));
@@ -398,40 +503,47 @@ void IPodWrapper::albumHandler(const char *album) {
         strcpy(albumName, album);
     }
 
-    DEBUG_PGM_PRINT("got album title: ");
+    DEBUG_PGM_PRINT("[wrap] got album title: ");
     DEBUG_PRINTLN(albumName);
     
     updateMetaState = UPDATE_META_DONE;
 }
 // }}}
 
-// {{{ IPodWrapper::pollingHandler
-void IPodWrapper::pollingHandler(AdvancedRemote::PollingCommand command,
-                                 unsigned long playlistPositionOrelapsedTimeMs)
+// {{{ IPodWrapper::handlePolling
+void IPodWrapper::handlePolling(AdvancedRemote::PollingCommand command,
+                                        unsigned long playlistPositionOrelapsedTimeMs)
 {
     updateAdvancedModeExpirationTimestamp();
 
     if (command == AdvancedRemote::POLLING_TRACK_CHANGE) {
-        DEBUG_PGM_PRINT("track change to: ");
+        DEBUG_PGM_PRINT("[wrap] track change to: ");
         DEBUG_PRINTLN(playlistPositionOrelapsedTimeMs, DEC);
 
-        playlistPositionHandler(playlistPositionOrelapsedTimeMs);
+        handlePlaylistPosition(playlistPositionOrelapsedTimeMs);
     }
     else if (command == AdvancedRemote::POLLING_ELAPSED_TIME) {
-        // unsigned long totalSecs = playlistPositionOrelapsedTimeMs / 1000;
-        // unsigned int mins = totalSecs / 60;
-        // unsigned int partialSecs = totalSecs % 60;
-        // 
-        // DEBUG_PGM_PRINT("elapsed time: ");
-        // DEBUG_PRINT(mins, DEC);
-        // DEBUG_PGM_PRINT("m ");
-        // DEBUG_PRINT(partialSecs, DEC);
-        // DEBUG_PGM_PRINTLN("s");
+        unsigned long totalSecs = playlistPositionOrelapsedTimeMs / 1000;
+        unsigned int mins = totalSecs / 60;
+        unsigned int partialSecs = totalSecs % 60;
+        
+        DEBUG_PGM_PRINT("elapsed time: ");
+        DEBUG_PRINT(mins, DEC);
+        DEBUG_PGM_PRINT("m ");
+        DEBUG_PRINT(partialSecs, DEC);
+        DEBUG_PGM_PRINTLN("s");
     }
     else {
-        DEBUG_PGM_PRINT("unknown polling command: ");
+        DEBUG_PGM_PRINT("[wrap] unknown polling command: ");
         DEBUG_PRINTLN(playlistPositionOrelapsedTimeMs, DEC);
     }
 }
 // }}}
 
+// no-ops
+void IPodWrapper::handleIPodName(const char *ipodName) {}
+void IPodWrapper::handleItemCount(unsigned long count) {}
+void IPodWrapper::handleItemName(unsigned long offet, const char *itemName) {}
+void IPodWrapper::handleShuffleMode(AdvancedRemote::ShuffleMode mode) {}
+void IPodWrapper::handleRepeatMode(AdvancedRemote::RepeatMode mode) {}
+void IPodWrapper::handleCurrentPlaylistSongCount(unsigned long count) {}

@@ -3,20 +3,18 @@
 
 #include <NewSoftSerial.h>
 
-#include <iPodSerial.h>
+// #include <iPodSerial.h>
 #include <AdvancedRemote.h>
 #include <SimpleRemote.h>
 
-class IPodWrapper {
-private:
+class IPodWrapper : public AdvancedRemote::AdvancedRemoteListener {
+public:
     enum IPodMode {
         MODE_UNKNOWN,
         MODE_SIMPLE,
         MODE_SWITCHING_TO_ADVANCED,
         MODE_ADVANCED
     };
-    
-    enum IPodMode mode;
     
     enum UpdateMetaState {
         UPDATE_META_TITLE,
@@ -25,8 +23,6 @@ private:
         UPDATE_META_DONE
     };
     
-    enum UpdateMetaState updateMetaState;
-    
     enum IPodPlayingState {
         PLAY_STATE_UNKNOWN,
         PLAY_STATE_PLAYING,
@@ -34,8 +30,16 @@ private:
         PLAY_STATE_STOPPED
     };
     
-    enum IPodPlayingState currentPlayingState;
-    enum IPodPlayingState requestedPlayingState;
+    // handler definitions
+    typedef void TrackChangedHandler_t(unsigned long playlistPosition);
+    typedef void MetaDataChangedHandler_t();
+    typedef void IPodModeChangedHandler_t(IPodMode mode);
+
+private:
+    IPodMode mode;
+    UpdateMetaState updateMetaState;
+    IPodPlayingState currentPlayingState;
+    IPodPlayingState requestedPlayingState;
     
     // per-object data
     uint8_t rxPin;
@@ -46,6 +50,7 @@ private:
     AdvancedRemote advancedRemote;
     
     unsigned long playlistPosition;
+    unsigned long advancedModeExpirationTimestamp;
 
     char *trackName;
     char *artistName;
@@ -57,32 +62,18 @@ private:
     // event flag; set to true when a track change is detected
     boolean trackChanged;
     
-    // callback handlers
-    void feedbackHandler(AdvancedRemote::Feedback feedback, byte cmd);
-    void iPodNameHandler(const char *ipodName);
-    void timeAndStatusHandler(unsigned long trackLengthInMilliseconds,
-                              unsigned long elapsedTimeInMilliseconds,
-                              AdvancedRemote::PlaybackStatus status);
-    void playlistPositionHandler(unsigned long playlistPosition);
-    void titleHandler(const char *title);
-    void artistHandler(const char *artist);
-    void albumHandler(const char *album);
-    void pollingHandler(AdvancedRemote::PollingCommand command,
-                        unsigned long playlistPositionOrelapsedTimeMs);
-    
-    void reset();
-    void syncPlayingState();
-    
     TrackChangedHandler_t *pTrackChangedHandler;
     MetaDataChangedHandler_t *pMetaDataChangedHandler;
     IPodModeChangedHandler_t *pIPodModeChangedHandler;
+
+    void reset();
+    void syncPlayingState();
+    void updateAdvancedModeExpirationTimestamp();
     
 public:
-    // handler definitions
-    typedef void TrackChangedHandler_t(unsigned long playlistPosition);
-    typedef void MetaDataChangedHandler_t();
-    typedef void IPodModeChangedHandler_t(enum IPodMode mode);
-
+    // CONSTRUCTOR ==========================================================
+    IPodWrapper();
+    
     // CONFIGURATION ========================================================
     
     void setTrackChangedHandler(TrackChangedHandler_t newHandler);
@@ -92,7 +83,7 @@ public:
     /*
      * Call after handlers are configured.
      */
-    init(NewSoftSerial *_nss, uint8_t _rxPin);
+    void init(NewSoftSerial *_nss, uint8_t _rxPin);
     
     // GETTERS ==============================================================
     /*
@@ -126,13 +117,33 @@ public:
      */
     void update();
     
+    void play();
+    void pause();
+
     void nextTrack();
     void prevTrack();
     void nextAlbum();
     void prevAlbum();
     
-    void play();
-    void pause();
+    // CALLBACK HANDLERS ====================================================
+    virtual void handleFeedback(AdvancedRemote::Feedback feedback, byte cmd);
+    virtual void handleIPodName(const char *ipodName);
+    virtual void handleItemCount(unsigned long count);
+    virtual void handleItemName(unsigned long offet, const char *itemName);
+    virtual void handleTimeAndStatus(unsigned long trackLengthInMilliseconds,
+                                     unsigned long elapsedTimeInMilliseconds,
+                                     AdvancedRemote::PlaybackStatus status);
+    virtual void handlePlaylistPosition(unsigned long playlistPosition);
+    virtual void handleTitle(const char *title);
+    virtual void handleArtist(const char *artist);
+    virtual void handleAlbum(const char *album);
+    virtual void handlePolling(AdvancedRemote::PollingCommand command,
+                               unsigned long playlistPositionOrelapsedTimeMs);
+    virtual void handleShuffleMode(AdvancedRemote::ShuffleMode mode);
+    virtual void handleRepeatMode(AdvancedRemote::RepeatMode mode);
+    virtual void handleCurrentPlaylistSongCount(unsigned long count);
+    
+    
 };
 
 #endif

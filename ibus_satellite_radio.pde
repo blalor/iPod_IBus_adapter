@@ -16,6 +16,9 @@
 #include "HardwareSerial.h"
 #include <NewSoftSerial.h>
 
+// this is to make the Arduino include-path kludge-ifier work for iPodWrapper.h
+#include <AdvancedRemote.h>
+
 #include "iPodWrapper.h"
 #include "pgm_util.h"
 
@@ -146,6 +149,40 @@ Print *console =
         NULL
     #endif
 ;
+
+// {{{ trackChangedHandler
+void trackChangedHandler(unsigned long playlistPosition) {
+    satelliteState.channel = (uint8_t) playlistPosition;
+    update_sdrs_status();
+}
+// }}}
+
+// {{{ metaDataChangedHandler
+void metaDataChangedHandler() {
+    update_sdrs_channel_text();
+}
+// }}}
+
+// {{{ iPodModeChangedHandler
+// for notification when mode changes between simple and advanced
+void iPodModeChangedHandler(IPodWrapper::IPodMode mode) {
+    // MODE_UNKNOWN,
+    // MODE_SIMPLE,
+    // MODE_ADVANCED
+
+    #if DEBUG
+        if (mode == IPodWrapper::MODE_UNKNOWN) {
+            DEBUG_PGM_PRINTLN("iPod went away!");
+        } else if (mode == IPodWrapper::MODE_SIMPLE) {
+            DEBUG_PGM_PRINTLN("iPod switched to simple mode");
+        } else if (mode == IPodWrapper::MODE_ADVANCED) {
+            DEBUG_PGM_PRINTLN("iPod switched to advanced mode");
+        }
+    #endif
+    
+    update_sdrs_channel_text();
+}
+// }}}
 
 // {{{ setup
 void setup() {
@@ -1044,36 +1081,3 @@ void cancel_current_operation() {
 }
 // }}}
 
-// {{{ trackChangedHandler
-void trackChangedHandler(unsigned long playlistPosition) {
-    satelliteState.channel = (uint8_t) playlistPosition;
-    update_sdrs_status();
-}
-// }}}
-
-// {{{ metaDataChangedHandler
-void metaDataChangedHandler() {
-    update_sdrs_channel_text();
-}
-// }}}
-
-// {{{ iPodModeChangedHandler
-// for notification when mode changes between simple and advanced
-void iPodModeChangedHandler(IPodWrapper::IPodMode mode) {
-    // MODE_UNKNOWN,
-    // MODE_SIMPLE,
-    // MODE_ADVANCED
-
-    #if DEBUG
-        if (mode == IPodWrapper::MODE_UNKNOWN) {
-            DEBUG_PGM_PRINTLN("iPod went away!");
-        } else if (mode == IPodWrapper::MODE_SIMPLE) {
-            DEBUG_PGM_PRINTLN("iPod switched to simple mode");
-        } else if (mode == IPodWrapper::MODE_ADVANCED) {
-            DEBUG_PGM_PRINTLN("iPod switched to advanced mode");
-        }
-    #endif
-    
-    update_sdrs_channel_text();
-}
-// }}}
