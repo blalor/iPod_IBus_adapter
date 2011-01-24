@@ -13,7 +13,7 @@ import serial
 import datetime
 
 def main():
-    ser = serial.Serial(port = sys.argv[1], baudrate = 115200, timeout = 0.25)
+    ser = serial.Serial(port = sys.argv[1], baudrate = int(sys.argv[2]), timeout = 0.25)
     
     # found_data = False
     # while True:
