@@ -172,11 +172,11 @@ void iPodModeChangedHandler(IPodWrapper::IPodMode mode) {
 
     #if DEBUG
         if (mode == IPodWrapper::MODE_UNKNOWN) {
-            DEBUG_PGM_PRINTLN("iPod went away!");
+            DEBUG_PGM_PRINTLN("[iPod] went away!");
         } else if (mode == IPodWrapper::MODE_SIMPLE) {
-            DEBUG_PGM_PRINTLN("iPod switched to simple mode");
+            DEBUG_PGM_PRINTLN("[iPod] switched to simple mode");
         } else if (mode == IPodWrapper::MODE_ADVANCED) {
-            DEBUG_PGM_PRINTLN("iPod switched to advanced mode");
+            DEBUG_PGM_PRINTLN("[iPod] switched to advanced mode");
         }
     #endif
     
@@ -226,9 +226,9 @@ void setup() {
     
     if (digitalRead(INH_PIN) == LOW) {
         // bus is inhibited
-        DEBUG_PGM_PRINTLN("bus is inhibited");
+        DEBUG_PGM_PRINTLN("[IBus] bus is inhibited");
     } else {
-        DEBUG_PGM_PRINTLN("bus is alive");
+        DEBUG_PGM_PRINTLN("[IBus] bus is alive");
     }
     
     // can't do anything while the bus is asleep.
@@ -253,7 +253,7 @@ void setup() {
     // iPodWrapper.setAdvanced();
     
     // send SDRS announcement
-    DEBUG_PGM_PRINTLN("sending initial announcement");
+    DEBUG_PGM_PRINTLN("[IBus] sending initial announcement");
     send_sdrs_device_ready_after_reset();
     
     digitalWrite(LED_COLL, LOW);
@@ -293,7 +293,7 @@ void loop() {
         where all available and "invalid" data will have been consumed.
         */
         if ((lastPoll + 20000L) < millis()) {
-            DEBUG_PGM_PRINTLN("haven't seen a poll in a while; we're dead to the radio");
+            DEBUG_PGM_PRINTLN("[IBus] haven't seen a poll in a while; we're dead to the radio");
             digitalWrite(LED_COLL, HIGH);
             send_sdrs_device_ready_after_reset();
             lastPoll = millis();
@@ -366,7 +366,7 @@ boolean process_incoming_data() {
     // reset in the RX interrupt I think this will at least avoid getting 
     // stuck waiting for enough data to arrive
     if (bytes_availble && (Serial.peek(PKT_SRC) != RAD_ADDR) && (Serial.peek(PKT_SRC) != SDRS_ADDR)) {
-        DEBUG_PGM_PRINTLN("dropping byte from unknown source");
+        DEBUG_PGM_PRINTLN("[IBus] dropping byte from unknown source");
         Serial.remove(1);
     }
     // need at least two bytes to a packet, src and length
@@ -388,12 +388,12 @@ boolean process_incoming_data() {
             (data_len >= MAX_EXPECTED_LEN) || // we don't handle messages larger than this
             (data_len >= RX_BUFFER_SIZE)      // hard limit to how much data we can buffer
         ) {
-            DEBUG_PGM_PRINTLN("invalid packet length");
+            DEBUG_PGM_PRINTLN("[IBus] invalid packet length");
             
             #if DEBUG && DEBUG_PACKET_PARSING
-                     if (data_len == 0) DEBUG_PGM_PRINTLN("length cannot be zero");
-                else if (data_len >= MAX_EXPECTED_LEN) DEBUG_PGM_PRINTLN("we don't handle messages larger than this");
-                else if (data_len >= RX_BUFFER_SIZE) DEBUG_PGM_PRINTLN("hard limit to how much data we can buffer");
+                     if (data_len == 0) DEBUG_PGM_PRINTLN("[pkt] length cannot be zero");
+                else if (data_len >= MAX_EXPECTED_LEN) DEBUG_PGM_PRINTLN("[pkt] we don't handle messages larger than this");
+                else if (data_len >= RX_BUFFER_SIZE) DEBUG_PGM_PRINTLN("[pkt] hard limit to how much data we can buffer");
             #endif
             Serial.remove(1);
         }
@@ -433,7 +433,7 @@ boolean process_incoming_data() {
                     // valid checksum
 
                     #if DEBUG_PACKET_PARSING
-                        DEBUG_PGM_PRINT("received pkt ");
+                        DEBUG_PGM_PRINT("[pkt] received pkt ");
                     #endif
 
                     // read packet into buffer and dispatch
@@ -451,7 +451,7 @@ boolean process_incoming_data() {
                     #endif
                     
                     #if WICKED_VERBOSE
-                        DEBUG_PGM_PRINT("packet from ");
+                        DEBUG_PGM_PRINT("[IBus] packet from ");
                         DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
                     #endif
                     
@@ -460,7 +460,7 @@ boolean process_incoming_data() {
                 else {
                     // invalid checksum; drop first byte in buffer and try
                     // again
-                    DEBUG_PGM_PRINTLN("invalid checksum");
+                    DEBUG_PGM_PRINTLN("[IBus] invalid checksum");
                     Serial.remove(1);
                 }
             } // if (bytes_availble …)
@@ -473,14 +473,14 @@ boolean process_incoming_data() {
                     readTimeout = ((125 * ((pkt_len - bytes_availble) + 1)) / 100);
                     
                     #if DEBUG && DEBUG_PACKET_PARSING
-                        DEBUG_PGM_PRINT("read timeout: ");
+                        DEBUG_PGM_PRINT("[pkt] read timeout: ");
                         DEBUG_PRINTLN(readTimeout, DEC);
                     #endif
                     
                     readTimeout += millis();
                 }
                 else if (millis() > readTimeout) {
-                    DEBUG_PGM_PRINTLN("dropping packet due to read timeout");
+                    DEBUG_PGM_PRINTLN("[IBus] dropping packet due to read timeout");
                     readTimeout = 0;
                     Serial.remove(1);
                 }
@@ -499,7 +499,7 @@ void dispatch_packet(const uint8_t *packet) {
     // determine if the packet is from the radio and addressed to us, or if there
     // are any other packets we should use as a trigger.
     #if WICKED_VERBOSE
-        DEBUG_PGM_PRINT("got packet from ");
+        DEBUG_PGM_PRINT("[IBus] got packet from ");
         DEBUG_PRINTLN(rx_buf[PKT_SRC], HEX);
     #endif
     
@@ -513,7 +513,7 @@ void dispatch_packet(const uint8_t *packet) {
             // @todo read up on IBus protocol to see when I should really send 
             // my announcements
             
-            DEBUG_PGM_PRINTLN("sending SDRS announcement because radio sent device status ready");
+            DEBUG_PGM_PRINTLN("[IBus] sending SDRS announcement because radio sent device status ready");
             
             // send SDRS announcement
             send_sdrs_device_ready();
@@ -527,7 +527,7 @@ void dispatch_packet(const uint8_t *packet) {
             // handle poll request
             lastPoll = millis();
             
-            DEBUG_PGM_PRINTLN("responding to poll request");
+            DEBUG_PGM_PRINTLN("[IBus] responding to poll request");
             send_sdrs_device_ready();
         }
         else if (packet[PKT_CMD] == 0x3D) {
@@ -692,7 +692,7 @@ void dispatch_packet(const uint8_t *packet) {
     }
     #if DEBUG && DEBUG_PACKET_PARSING
         else if (packet[PKT_SRC] == SDRS_ADDR) {
-            DEBUG_PGM_PRINTLN("ignoring packet from myself");
+            DEBUG_PGM_PRINTLN("[pkt] ignoring packet from myself");
         }
     #endif
 }
@@ -749,7 +749,7 @@ boolean send_raw_ibus_packet(uint8_t *data, size_t data_len) {
     boolean sent_successfully = false;
     
     #if DEBUG && DEBUG_PACKET_PARSING
-        DEBUG_PGM_PRINT("packet to send: ");
+        DEBUG_PGM_PRINT("[pkt] packet to send: ");
         for (int i = 0; i < data_len; i++) {
             DEBUG_PRINT((uint8_t) data[i], HEX);
             DEBUG_PGM_PRINT(" ");
@@ -780,7 +780,7 @@ boolean send_raw_ibus_packet(uint8_t *data, size_t data_len) {
         if (contention) {
             // someone's sending data; we cannot send
             digitalWrite(LED_COLL, HIGH);
-            DEBUG_PGM_PRINT("CONTENTION SENDING ");
+            DEBUG_PGM_PRINT("[IBus] CONTENTION SENDING ");
             DEBUG_PRINTLN(retryCnt, DEC);
 
             #if DEBUG && DEBUG_PACKET_PARSING
@@ -950,8 +950,9 @@ void send_sdrs_packet(PGM_P pgm_data,
     // ensure sufficient space in tx buffer
     // add two more for src and packet_len bytes
     if ((tx_ind + packet_len + 2) >= TX_BUF_LEN) {
-        DEBUG_PGM_PRINTLN("dropping message because TX buffer is full!");
         #if DEBUG
+            DEBUG_PGM_PRINTLN("[IBus] dropping message because TX buffer is full!");
+            
             DEBUG_PGM_PRINT("data: ");
             for (int i = 0; i < data_len; i++) {
                 DEBUG_PRINT((uint8_t) data[i], HEX);
@@ -976,7 +977,7 @@ void send_sdrs_packet(PGM_P pgm_data,
         tx_buf[tx_ind++] = calc_checksum(&tx_buf[tmp_ind], tx_ind - tmp_ind);
         
         if (! send_raw_ibus_packet(tx_buf, tx_ind)) {
-            DEBUG_PGM_PRINTLN("unable to send after repeated retries");
+            DEBUG_PGM_PRINTLN("[IBus] unable to send after repeated retries");
         }
     }
     
@@ -1010,7 +1011,7 @@ void send_sdrs_device_ready() {
 
 // {{{ update_sdrs_status
 void update_sdrs_status() {
-    DEBUG_PGM_PRINTLN("updating status");
+    DEBUG_PGM_PRINTLN("[IBus] updating status");
     
     send_sdrs_packet(ibus_data("\x3E\x02\x00..\x04"),
                      NULL, true, true);
@@ -1019,7 +1020,7 @@ void update_sdrs_status() {
 
 // {{{ update_sdrs_channel_text
 void update_sdrs_channel_text() {
-    DEBUG_PGM_PRINTLN("updating channel text");
+    DEBUG_PGM_PRINTLN("[IBus] updating channel text");
 
     if (iPodWrapper.isPresent()) {
         if (iPodWrapper.isAdvancedModeActive() && (iPodWrapper.getTitle() != NULL)) {
@@ -1063,7 +1064,7 @@ void set_state_active() {
 
 // {{{ set_state_inactive
 void set_state_inactive() {
-    DEBUG_PGM_PRINTLN("responding to mode/power command");
+    DEBUG_PGM_PRINTLN("[IBus] responding to mode/power command");
     send_sdrs_packet(ibus_data("\x3E\x00\x00\x1A\x11\x04"),
                      NULL, false, false);
 

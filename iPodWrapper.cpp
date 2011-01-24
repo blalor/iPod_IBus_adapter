@@ -72,6 +72,8 @@ void IPodWrapper::init(NewSoftSerial *_nss, uint8_t _rxPin) {
  * simple remote.
  */
 void IPodWrapper::reset() {
+    DEBUG_PGM_PRINTLN("[wrap] resetting; MODE_UNKNOWN");
+    
     mode = MODE_UNKNOWN;
     updateMetaState = UPDATE_META_DONE;
     
@@ -144,6 +146,7 @@ void IPodWrapper::setAdvanced() {
     activeRemote = &advancedRemote;
     advancedRemote.enable();
     
+    DEBUG_PGM_PRINTLN("[wrap] setting MODE_SWITCHING_TO_ADVANCED");
     mode = MODE_SWITCHING_TO_ADVANCED;
     
     advancedRemote.getTimeAndStatusInfo();
@@ -181,7 +184,7 @@ void IPodWrapper::update() {
     if (mode == MODE_UNKNOWN) {
         if (digitalRead(rxPin)) {
             // transition from not-found to found
-            // DEBUG_PGM_PRINTLN("[wrap] iPod found");
+            DEBUG_PGM_PRINTLN("[wrap] iPod found");
             
             nss->flush();
             
@@ -191,7 +194,7 @@ void IPodWrapper::update() {
     else if (mode == MODE_SIMPLE) {
         if (! digitalRead(rxPin)) {
             // transition from found to not-found
-            // DEBUG_PGM_PRINTLN("[wrap] iPod went away in simple mode");
+            DEBUG_PGM_PRINTLN("[wrap] iPod went away in simple mode");
             
             reset();
         }
@@ -237,11 +240,6 @@ void IPodWrapper::update() {
                     pMetaDataChangedHandler();
                 }
             }
-            
-            // DEBUG_PGM_PRINT("[wrap] advancedModeExpirationTimestamp: ");
-            // DEBUG_PRINT(advancedModeExpirationTimestamp, DEC);
-            // DEBUG_PGM_PRINT(", millis: ");
-            // DEBUG_PRINTLN(millis(), DEC);
             
             // this expiration timestamp is more difficult to figure out than
             // I figured it would be. When polling's enabled, we get an 
@@ -398,6 +396,7 @@ void IPodWrapper::handleTimeAndStatus(unsigned long trackLengthInMilliseconds,
     // this is the first method invoked after entering into
     // MODE_SWITCHING_TO_ADVANCED; confirm that advanced is now active.
     if (mode == MODE_SWITCHING_TO_ADVANCED) {
+        DEBUG_PGM_PRINTLN("[wrap] setting MODE_ADVANCED");
         mode = MODE_ADVANCED;
     }
     
@@ -467,9 +466,6 @@ void IPodWrapper::handleTitle(const char *title) {
         strcpy(trackName, title);
     }
 
-    DEBUG_PGM_PRINT("[wrap] got track title: ");
-    DEBUG_PRINTLN(trackName);
-    
     updateMetaState = UPDATE_META_ARTIST;
     advancedRemote.getArtist(playlistPosition);
 }
@@ -484,9 +480,6 @@ void IPodWrapper::handleArtist(const char *artist) {
     if (artistName != NULL) {
         strcpy(artistName, artist);
     }
-
-    DEBUG_PGM_PRINT("[wrap] got artist title: ");
-    DEBUG_PRINTLN(artistName);
 
     updateMetaState = UPDATE_META_ALBUM;
     advancedRemote.getAlbum(playlistPosition);
@@ -503,9 +496,6 @@ void IPodWrapper::handleAlbum(const char *album) {
         strcpy(albumName, album);
     }
 
-    DEBUG_PGM_PRINT("[wrap] got album title: ");
-    DEBUG_PRINTLN(albumName);
-    
     updateMetaState = UPDATE_META_DONE;
 }
 // }}}
@@ -523,15 +513,15 @@ void IPodWrapper::handlePolling(AdvancedRemote::PollingCommand command,
         handlePlaylistPosition(playlistPositionOrelapsedTimeMs);
     }
     else if (command == AdvancedRemote::POLLING_ELAPSED_TIME) {
-        unsigned long totalSecs = playlistPositionOrelapsedTimeMs / 1000;
-        unsigned int mins = totalSecs / 60;
-        unsigned int partialSecs = totalSecs % 60;
-        
-        DEBUG_PGM_PRINT("elapsed time: ");
-        DEBUG_PRINT(mins, DEC);
-        DEBUG_PGM_PRINT("m ");
-        DEBUG_PRINT(partialSecs, DEC);
-        DEBUG_PGM_PRINTLN("s");
+        // unsigned long totalSecs = playlistPositionOrelapsedTimeMs / 1000;
+        // unsigned int mins = totalSecs / 60;
+        // unsigned int partialSecs = totalSecs % 60;
+        // 
+        // DEBUG_PGM_PRINT("[wrap] elapsed time: ");
+        // DEBUG_PRINT(mins, DEC);
+        // DEBUG_PGM_PRINT("m ");
+        // DEBUG_PRINT(partialSecs, DEC);
+        // DEBUG_PGM_PRINTLN("s");
     }
     else {
         DEBUG_PGM_PRINT("[wrap] unknown polling command: ");
