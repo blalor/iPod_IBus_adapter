@@ -154,6 +154,7 @@ IPodWrapper::IPodPlayingState IPodWrapper::getPlayingState() {
 void IPodWrapper::switchToSimple() {
     DEBUG_PGM_PRINTLN("[wrap] setting MODE_SIMPLE");
     mode = MODE_SIMPLE;
+    currentPlayingState = PLAY_STATE_UNKNOWN;
     
     // the Dension ice>Link: Plus does this; might be a wakeup of some kind?
     stream->write('\xff');
@@ -161,6 +162,12 @@ void IPodWrapper::switchToSimple() {
     
     advancedRemote.disable();
     activeRemote = &simpleRemote;
+    
+    // we're either losing the feedback from the iPod that the mode has changed,
+    // or it's not getting sent.  Either way, notify that the mode changed.
+    if (pIPodModeChangedHandler != NULL) {
+        pIPodModeChangedHandler(mode);
+    }
 }
 // }}}
 
