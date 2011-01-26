@@ -82,12 +82,9 @@ void IPodWrapper::init(Stream *_stream, uint8_t _rxPin) {
 
 // {{{ IPodWrapper::reset
 /*
- * Resets our interpretation of the iPod's state and configures us to use the
- * simple remote.
+ * Resets our interpretation of the iPod's state.
  */
 void IPodWrapper::reset() {
-    DEBUG_PGM_PRINTLN("[wrap] resetting; MODE_UNKNOWN");
-    
     mode = MODE_UNKNOWN;
     updateMetaState = UPDATE_META_DONE;
     
@@ -153,8 +150,11 @@ IPodWrapper::IPodPlayingState IPodWrapper::getPlayingState() {
 // {{{ IPodWrapper::switchToSimple
 void IPodWrapper::switchToSimple() {
     DEBUG_PGM_PRINTLN("[wrap] setting MODE_SIMPLE");
+
+    // want to wipe out metadata, set currentPlayingState to unknown
+    reset();
+    
     mode = MODE_SIMPLE;
-    currentPlayingState = PLAY_STATE_UNKNOWN;
     
     // the Dension ice>Link: Plus does this; might be a wakeup of some kind?
     stream->write('\xff');
@@ -227,13 +227,6 @@ void IPodWrapper::updateAdvancedModeExpirationTimestamp() {
 
 // {{{ IPodWrapper::update
 void IPodWrapper::update() {
-    int rx_pin_state;
-    
-    // attempt to test if an iPod's attached.  If the input's floating, this 
-    // could be a problem.
-    // @todo what about a *very* weak pull-down, which should be overridden by
-    // the iPod's (presumed) pull-up?
-    
     unsigned long now = millis();
     
     // throttle update calls to 250ms
@@ -257,9 +250,7 @@ void IPodWrapper::update() {
     }
 
     if (mode == MODE_UNKNOWN) {
-        rx_pin_state = digitalRead(rxPin);
-        
-        if (rx_pin_state == HIGH) {
+        if (digitalRead(rxPin) == HIGH) {
             // transition from not-found to found
             DEBUG_PGM_PRINTLN("[wrap] iPod found");
             
@@ -269,12 +260,9 @@ void IPodWrapper::update() {
         }
     }
     else if (mode == MODE_SIMPLE) {
-        rx_pin_state = digitalRead(rxPin);
-        
-        if (rx_pin_state == LOW) {
+        if (digitalRead(rxPin) == LOW) {
             // transition from found to not-found
-            DEBUG_PGM_PRINTLN("[wrap] iPod went away in simple mode");
-            
+            DEBUG_PGM_PRINTLN("[wrap] iPod went away in simple mode; switching to MODE_UNKNOWN");
             reset();
         }
     }
@@ -297,8 +285,7 @@ void IPodWrapper::update() {
                 DEBUG_PGM_PRINTLN("[wrap] timestamp update missed; will expire on next update");
             } else {
                 // transition from found to not-found
-                DEBUG_PGM_PRINTLN("[wrap] iPod went away in (or never entered into) advanced mode");
-            
+                DEBUG_PGM_PRINTLN("[wrap] iPod went away in (or never entered into) advanced mode; switching to MODE_UNKNOWN");
                 reset();
             }
         } else {

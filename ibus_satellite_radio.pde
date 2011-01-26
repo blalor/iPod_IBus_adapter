@@ -2,14 +2,6 @@
     The default state for an iPod when it's connected to this adapter is in
     "simple" mode; it should revert to this state whenever it's disconnected.
     
-    For our purposes, switching to advanced mode will require resetting
-    iPodState to a known state and then enabling advanced mode.
-    
-    Next up:
-    • add handler/getter to track iPod state (playing, paused, stopped)
-    • keep the iPod playing even after a reconnect
-    • do not pause the iPod when connecting, regardless of modes
-    
     Outstanding issues:
     • occasionally gets stuck in paused mode
     • occasionally the iPodWrapper doesn't trigger a metadata update
@@ -52,9 +44,17 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 #define IPOD_RX_PIN 8 // 14 on chip
 #define IPOD_TX_PIN 7 // 13 on chip
 
-#define LED_COLL 19 // red
-#define LED_ACT1 18 // yellow
-#define LED_ACT2 17 // green
+/*
+ * LEDs:
+ *   red: missed poll from radio
+ *   yellow: processing incoming IBus data
+ *   green: sending IBus data
+ *   
+ *   yellow + green: contention/collision when sending
+ */
+#define LED_ERR      19 // red
+#define LED_IBUS_RX  18 // yellow
+#define LED_IBUS_TX  17 // green
 
 // addresses of IBus devices
 #define RAD_ADDR  0x68
@@ -257,19 +257,18 @@ void setup() {
         if (mcusr_mirror & _BV(WDRF))  DEBUG_PGM_PRINTLN("==== watchdog reset ====");
     #endif /* DEBUG */
     
-    pinMode(LED_COLL, OUTPUT);
-    pinMode(LED_ACT2, OUTPUT);
-    pinMode(LED_ACT1, OUTPUT);
+    pinMode(LED_ERR, OUTPUT);
+    pinMode(LED_IBUS_TX, OUTPUT);
+    pinMode(LED_IBUS_RX, OUTPUT);
     
     pinMode(INH_PIN, INPUT);
     
-    // indicate setup is underway
-    digitalWrite(LED_ACT1, HIGH);
+    // indicate setup is underway; green flashes for IBus TX
+    digitalWrite(LED_IBUS_RX, HIGH);
     
-    digitalWrite(LED_ACT1, LOW);
-    digitalWrite(LED_ACT2, HIGH);
     announcement_sent = false;
     
+    // zero-out channel text buffer, including trailing nul
     memset(channel_text_data, 0, CHANNEL_TEXT_LENGTH + 1);
     
     // Set up timer2 at Fcpu/1 (no prescaler) for contention detection. Must
@@ -318,6 +317,7 @@ void setup() {
     
     // for notification when the currently-playing track changes
     iPodWrapper.setTrackChangedHandler(trackChangedHandler);
+    
     iPodWrapper.setMetaDataChangedHandler(metaDataChangedHandler);
     iPodWrapper.setPlayStateChangedHandler(playStateChangedHandler);
     
@@ -336,20 +336,16 @@ void setup() {
         printFreeMemory();
     #endif /* DEBUG */
     
-    digitalWrite(LED_COLL, LOW);
-    digitalWrite(LED_ACT1, LOW);
-    digitalWrite(LED_ACT2, LOW);
-
     for (int i = 0; i < 3; i++) {
         wdt_reset();
         
-        digitalWrite(LED_COLL, HIGH);
-        digitalWrite(LED_ACT1, HIGH);
-        digitalWrite(LED_ACT2, HIGH);
+        digitalWrite(LED_ERR, HIGH);
+        digitalWrite(LED_IBUS_RX, HIGH);
+        digitalWrite(LED_IBUS_TX, HIGH);
         delay(250);
-        digitalWrite(LED_COLL, LOW);
-        digitalWrite(LED_ACT1, LOW);
-        digitalWrite(LED_ACT2, LOW);
+        digitalWrite(LED_ERR, LOW);
+        digitalWrite(LED_IBUS_RX, LOW);
+        digitalWrite(LED_IBUS_TX, LOW);
         delay(250);
     }
 }
@@ -360,7 +356,7 @@ void loop() {
     wdt_reset();
     
     if (millis() > ledOffTime) {
-        digitalWrite(LED_ACT2, LOW);
+        digitalWrite(LED_IBUS_TX, LOW);
     }
     
     iPodWrapper.update();
@@ -375,30 +371,18 @@ void loop() {
     if (bus_inhibited) {
         // @todo flash leds?
     } else {
-        /*
-        The serial reading is pretty naive. If we start reading in the middle of
-        a packet transmission, the checksum validation will fail. All data
-        received up to that point will be lost. It's expected that this loop will
-        eventually synchronize with the stream during a lull in the conversation,
-        where all available and "invalid" data will have been consumed.
-        */
         if ((lastPoll + 20000L) < millis()) {
             DEBUG_PGM_PRINTLN("[IBus] haven't seen a poll in a while; we're dead to the radio");
-            digitalWrite(LED_COLL, HIGH);
+            digitalWrite(LED_ERR, HIGH);
+            
             send_sdrs_device_ready_after_reset();
             lastPoll = millis();
+            
+            digitalWrite(LED_ERR, LOW);
         }
         
         process_incoming_data();
     }
-    
-    // if (
-    //     (iPodPlayState == IPodWrapper::PLAY_STATE_PAUSED) &&
-    //     (satelliteState.status == SDRS_STATUS_ACTIVE)
-    // ) {
-    //     DEBUG_PGM_PRINTLN("[iPod] paused; playing");
-    //     iPodWrapper.play();
-    // }
 }
 // }}}
 
@@ -442,12 +426,20 @@ void configureForBusInhibition() {
 
 // {{{ process_incoming_data
 boolean process_incoming_data() {
+    /*
+    The serial reading is pretty naive. If we start reading in the middle of
+    a packet transmission, the checksum validation will fail. All data
+    received up to that point will be lost. It's expected that this loop will
+    eventually synchronize with the stream during a lull in the conversation,
+    where all available and "invalid" data will have been consumed.
+    */
+    
     boolean found_message = false;
     
     uint8_t bytes_availble = Serial.available();
     
     if (bytes_availble) {
-        digitalWrite(LED_ACT1, HIGH);
+        digitalWrite(LED_IBUS_RX, HIGH);
 
         #if DEBUG && DEBUG_PACKET_PARSING
             DEBUG_PGM_PRINT("[pkt] buf contents: ");
@@ -586,7 +578,7 @@ boolean process_incoming_data() {
         }
     } // if (bytes_availble  >= 2)
     
-    digitalWrite(LED_ACT1, LOW);
+    digitalWrite(LED_IBUS_RX, LOW);
 
     return found_message;
 }
@@ -865,7 +857,7 @@ boolean send_raw_ibus_packet(uint8_t *data, size_t data_len) {
         DEBUG_PRINTLN();
     #endif
     
-    digitalWrite(LED_ACT2, HIGH);
+    digitalWrite(LED_IBUS_TX, HIGH);
     ledOffTime = millis() + 500L;
     
     // check for bus contention before sending
@@ -887,7 +879,7 @@ boolean send_raw_ibus_packet(uint8_t *data, size_t data_len) {
         
         if (contention) {
             // someone's sending data; we cannot send
-            digitalWrite(LED_COLL, HIGH);
+            digitalWrite(LED_IBUS_RX, HIGH);
             DEBUG_PGM_PRINT("[IBus] CONTENTION SENDING ");
             DEBUG_PRINTLN(retryCnt, DEC);
 
@@ -906,7 +898,7 @@ boolean send_raw_ibus_packet(uint8_t *data, size_t data_len) {
             delay(20 * (retryCnt + 1));
         }
         else {
-            digitalWrite(LED_COLL, LOW);
+            digitalWrite(LED_IBUS_RX, LOW);
         
             // disableSerialReceive();
             // Serial.flush();
