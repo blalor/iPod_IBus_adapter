@@ -4,6 +4,16 @@
     
     For our purposes, switching to advanced mode will require resetting
     iPodState to a known state and then enabling advanced mode.
+    
+    Next up:
+    • add handler/getter to track iPod state (playing, paused, stopped)
+    • keep the iPod playing even after a reconnect
+    • do not pause the iPod when connecting, regardless of modes
+    
+    Outstanding issues:
+    • occasionally gets stuck in paused mode
+    • occasionally the iPodWrapper doesn't trigger a metadata update
+    • occasionally the first text update has garbage at the end
  */
 #define DEBUG 1
 #define DEBUG_PACKET_PARSING 0
@@ -13,8 +23,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "HardwareSerial.h"
-#include <NewSoftSerial.h>
+#include <avr/wdt.h>
+
+#include <SoftwareSerial.h>
 
 // this is to make the Arduino include-path kludge-ifier work for iPodWrapper.h
 #include <AdvancedRemote.h>
@@ -31,10 +42,10 @@
 const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 
 // pin mappings
-#define INH_PIN         2
+#define INH_PIN 2
 
 // RX for console is not currently supported; need special handling for
-// multiple NewSoftSerial instances
+// multiple SoftwareSerial instances
 #define CONSOLE_RX_PIN 14
 #define CONSOLE_TX_PIN 15
 
@@ -129,26 +140,41 @@ unsigned long ledOffTime;
 // timeout duration before giving up on a read
 unsigned long readTimeout;
 
-NewSoftSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN);
+SoftwareSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN, false, false, true);
 IPodWrapper iPodWrapper;
 
+IPodWrapper::IPodPlayingState iPodPlayState;
+
 #if DEBUG
-    NewSoftSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
+    unsigned long lastFreeMemCheck;
+    
+    SoftwareSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
 
-char channel_text_data[10];
+#define CHANNEL_TEXT_LENGTH 10
+char channel_text_data[CHANNEL_TEXT_LENGTH + 1];
 volatile boolean bus_inhibited;
 boolean announcement_sent;
 
 // this'll give me flexibility to swap between soft- and hard-ware serial 
 // while developing
-Print *console = 
-    #if DEBUG
-        &nssConsole
-    #else
-        NULL
-    #endif
-;
+Print *console;
+
+// http://www.nongnu.org/avr-libc/user-manual/group__avr__watchdog.html#_details
+// http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_startup
+// http://www.nongnu.org/avr-libc/user-manual/group__largedemo.html#largedemo_code_p4
+uint8_t mcusr_mirror __attribute__ ((section (".noinit")));
+
+void get_mcusr_and_disable_wdt(void) \
+  __attribute__((naked)) \
+  __attribute__((section(".init3")));
+
+void get_mcusr_and_disable_wdt(void) {
+  mcusr_mirror = MCUSR;
+  MCUSR = 0;
+  
+  wdt_disable();
+}
 
 // {{{ trackChangedHandler
 void trackChangedHandler(unsigned long playlistPosition) {
@@ -159,6 +185,19 @@ void trackChangedHandler(unsigned long playlistPosition) {
 
 // {{{ metaDataChangedHandler
 void metaDataChangedHandler() {
+    update_sdrs_channel_text();
+}
+// }}}
+
+// {{{ playStateChangedHandler
+void playStateChangedHandler(IPodWrapper::IPodPlayingState playState) {
+    // PLAY_STATE_UNKNOWN,
+    // PLAY_STATE_PLAYING,
+    // PLAY_STATE_PAUSED,
+    // PLAY_STATE_STOPPED
+    
+    iPodPlayState = playState;
+    
     update_sdrs_channel_text();
 }
 // }}}
@@ -184,20 +223,40 @@ void iPodModeChangedHandler(IPodWrapper::IPodMode mode) {
 }
 // }}}
 
+#if DEBUG
+    extern int __bss_end;
+    extern int *__brkval;
+
+    void printFreeMemory() {
+        int free_mem;
+        if ((int) __brkval == 0) {
+            free_mem = ((int) &free_mem) - ((int) &__bss_end);
+        } else {
+            free_mem = ((int) &free_mem) - ((int)__brkval);
+        }
+    
+        DEBUG_PGM_PRINT("free mem: ");
+        DEBUG_PRINTLN(free_mem);
+        lastFreeMemCheck = millis();
+    }
+#endif /* DEBUG */
+
 // {{{ setup
 void setup() {
     #if DEBUG
         // RX not supported; see comment near CONSOLE_RX_PIN define
         nssConsole.begin(115200);
         
-        if (MCUSR & _BV(PORF))  DEBUG_PGM_PRINTLN("power-on reset");
-        if (MCUSR & _BV(EXTRF)) DEBUG_PGM_PRINTLN("external reset");
-        if (MCUSR & _BV(BORF))  DEBUG_PGM_PRINTLN("brown-out reset");
-        if (MCUSR & _BV(WDRF))  DEBUG_PGM_PRINTLN("watchdog reset");
-    #endif
+        console = &nssConsole;
+        
+        printFreeMemory();
+        
+        if (mcusr_mirror & _BV(PORF))  DEBUG_PGM_PRINTLN("==== power-on reset ====");
+        if (mcusr_mirror & _BV(EXTRF)) DEBUG_PGM_PRINTLN("==== external reset ====");
+        if (mcusr_mirror & _BV(BORF))  DEBUG_PGM_PRINTLN("==== brown-out reset ====");
+        if (mcusr_mirror & _BV(WDRF))  DEBUG_PGM_PRINTLN("==== watchdog reset ====");
+    #endif /* DEBUG */
     
-    MCUSR = 0;
-
     pinMode(LED_COLL, OUTPUT);
     pinMode(LED_ACT2, OUTPUT);
     pinMode(LED_ACT1, OUTPUT);
@@ -211,6 +270,8 @@ void setup() {
     digitalWrite(LED_ACT2, HIGH);
     announcement_sent = false;
     
+    memset(channel_text_data, 0, CHANNEL_TEXT_LENGTH + 1);
+    
     // Set up timer2 at Fcpu/1 (no prescaler) for contention detection. Must
     // be done before any IBus serial activity!
     //     CS22:1, CS21:0, CS20:0
@@ -221,6 +282,9 @@ void setup() {
     Serial.begin(9600);
     UCSR0C |= _BV(UPM01); // even parity
     
+    // start the watchdog timer w/ 4s timeout
+    wdt_enable(WDTO_4S);
+
     // test to make sure the bus is alive; if it isn't, shut down (but do not
     // reconfigure) the USART
     
@@ -234,6 +298,7 @@ void setup() {
     // can't do anything while the bus is asleep.
     // bus_inhibited = true;
     // while (bus_inhibited) {
+    //     wdt_reset();
     //     configureForBusInhibition();
     // }
     // 
@@ -241,26 +306,43 @@ void setup() {
     // // @todo use this interrupt to wake the µC from sleep
     // attachInterrupt(0, configureForBusInhibition, CHANGE);    
     
+    // baud rate for iPodSerial
+    // not having much luck with 38,400; maybe related to my "buffer"
+    // implementation (emitter-follower)?  19,200 works in both simple and
+    // advanced modes, however, even with the iPhone, it seems!
+    
+    nssIPod.begin(19200);
+    // nssIPod.begin(iPodSerial::IPOD_SERIAL_RATE);
+    
+    iPodPlayState = IPodWrapper::PLAY_STATE_UNKNOWN;
+    
     // for notification when the currently-playing track changes
     iPodWrapper.setTrackChangedHandler(trackChangedHandler);
     iPodWrapper.setMetaDataChangedHandler(metaDataChangedHandler);
+    iPodWrapper.setPlayStateChangedHandler(playStateChangedHandler);
     
     // for notification when mode changes between simple and advanced
     iPodWrapper.setModeChangedHandler(iPodModeChangedHandler);
 
     iPodWrapper.init(&nssIPod, IPOD_RX_PIN);
     
-    // iPodWrapper.setAdvanced();
+    iPodWrapper.setAdvanced();
     
     // send SDRS announcement
     DEBUG_PGM_PRINTLN("[IBus] sending initial announcement");
     send_sdrs_device_ready_after_reset();
+    
+    #if DEBUG
+        printFreeMemory();
+    #endif /* DEBUG */
     
     digitalWrite(LED_COLL, LOW);
     digitalWrite(LED_ACT1, LOW);
     digitalWrite(LED_ACT2, LOW);
 
     for (int i = 0; i < 3; i++) {
+        wdt_reset();
+        
         digitalWrite(LED_COLL, HIGH);
         digitalWrite(LED_ACT1, HIGH);
         digitalWrite(LED_ACT2, HIGH);
@@ -275,11 +357,19 @@ void setup() {
 
 // {{{ loop
 void loop() {
+    wdt_reset();
+    
     if (millis() > ledOffTime) {
         digitalWrite(LED_ACT2, LOW);
     }
     
     iPodWrapper.update();
+    
+    #if DEBUG
+        if (millis() > (lastFreeMemCheck + 10000L)) {
+            printFreeMemory();
+        }
+    #endif /* DEBUG */
     
     // can't do anything while the bus is asleep.
     if (bus_inhibited) {
@@ -301,6 +391,14 @@ void loop() {
         
         process_incoming_data();
     }
+    
+    // if (
+    //     (iPodPlayState == IPodWrapper::PLAY_STATE_PAUSED) &&
+    //     (satelliteState.status == SDRS_STATUS_ACTIVE)
+    // ) {
+    //     DEBUG_PGM_PRINTLN("[iPod] paused; playing");
+    //     iPodWrapper.play();
+    // }
 }
 // }}}
 
@@ -726,6 +824,16 @@ void handle_buttons(uint8_t button_id, uint8_t button_data) {
         
         case 0x09: // — preset button press and hold
             // data byte 2 is preset number (0x01, 0x02, … 0x06)
+            
+            // @todo kludge alert!
+            // hijack "set preset 6" to switch between advanced and simple modes
+            
+            if (iPodWrapper.isAdvancedModeActive()) {
+                iPodWrapper.setSimple();
+            } else {
+                iPodWrapper.setAdvanced();
+            }
+            
             break;
         
         default:
@@ -1023,13 +1131,24 @@ void update_sdrs_channel_text() {
     DEBUG_PGM_PRINTLN("[IBus] updating channel text");
 
     if (iPodWrapper.isPresent()) {
-        if (iPodWrapper.isAdvancedModeActive() && (iPodWrapper.getTitle() != NULL)) {
-            strncpy(channel_text_data, iPodWrapper.getTitle(), 10);
-        } else {
-            strncpy_P(channel_text_data, PSTR("playing"), 10);
+        if (iPodPlayState == IPodWrapper::PLAY_STATE_PLAYING) {
+            if (iPodWrapper.isAdvancedModeActive() && (iPodWrapper.getTitle() != NULL)) {
+                strncpy(channel_text_data, iPodWrapper.getTitle(), CHANNEL_TEXT_LENGTH);
+            } else {
+                strncpy_P(channel_text_data, PSTR("playing"), CHANNEL_TEXT_LENGTH);
+            }
+        }
+        else if (iPodPlayState == IPodWrapper::PLAY_STATE_STOPPED) {
+            strncpy_P(channel_text_data, PSTR("stopped"), CHANNEL_TEXT_LENGTH);
+        }
+        else if (iPodPlayState == IPodWrapper::PLAY_STATE_PAUSED) {
+            strncpy_P(channel_text_data, PSTR("paused"), CHANNEL_TEXT_LENGTH);
+        }
+        else {
+            strncpy_P(channel_text_data, PSTR("confused"), CHANNEL_TEXT_LENGTH);
         }
     } else {
-        strncpy_P(channel_text_data, PSTR("no iPod"), 10);
+        strncpy_P(channel_text_data, PSTR("no iPod"), CHANNEL_TEXT_LENGTH);
     }
     
     send_sdrs_packet(ibus_data("\x3E\x01\x00..\x04"),
@@ -1064,7 +1183,7 @@ void set_state_active() {
 
 // {{{ set_state_inactive
 void set_state_inactive() {
-    DEBUG_PGM_PRINTLN("[IBus] responding to mode/power command");
+    DEBUG_PGM_PRINTLN("[IBus] going inactive for mode/power command");
     send_sdrs_packet(ibus_data("\x3E\x00\x00\x1A\x11\x04"),
                      NULL, false, false);
 
@@ -1081,4 +1200,3 @@ void cancel_current_operation() {
     }
 }
 // }}}
-
