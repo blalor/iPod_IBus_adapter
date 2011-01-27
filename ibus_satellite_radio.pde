@@ -3,10 +3,9 @@
     "simple" mode; it should revert to this state whenever it's disconnected.
     
     Outstanding issues:
-    • occasionally gets stuck in paused mode
-    • occasionally the iPodWrapper doesn't trigger a metadata update
-    • occasionally the first text update has garbage at the end
     • need to deal with millis() rollover
+    • iPod still stops responding, occasionally
+    • occasionally doesn't get metadata after iPod reconnect
  */
 #define DEBUG 1
 #define DEBUG_PACKET_PARSING 0
@@ -174,7 +173,9 @@ SoftwareSerial nssIPod(
 IPodWrapper iPodWrapper;
 IPodWrapper::IPodPlayingState iPodPlayState;
 
-#define CHANNEL_TEXT_LENGTH 10
+// only 8 chars show on the screen for the channel display. It doesn't scroll
+// on its own.
+#define CHANNEL_TEXT_LENGTH 8
 char channel_text_data[CHANNEL_TEXT_LENGTH + 1];
 volatile boolean bus_inhibited;
 boolean announcement_sent;
@@ -201,7 +202,8 @@ void get_mcusr_and_disable_wdt(void) {
 
 // {{{ trackChangedHandler
 void trackChangedHandler(unsigned long playlistPosition) {
-    satelliteState.channel = (uint8_t) playlistPosition;
+    // iPod playlist position starts at 0; for aesthetics, we should start at 1
+    satelliteState.channel = ((uint8_t) playlistPosition) + 1;
     update_sdrs_status();
 }
 // }}}

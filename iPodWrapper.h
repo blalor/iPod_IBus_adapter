@@ -51,6 +51,7 @@ private:
     IPodPlayingState currentPlayingState;
     IPodPlayingState requestedPlayingState;
     
+    bool havePlaylistPosition;
     unsigned long playlistPosition;
 
     // used to throttle calls to update()

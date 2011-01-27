@@ -90,6 +90,7 @@ void IPodWrapper::reset() {
     
     currentPlayingState = PLAY_STATE_UNKNOWN;
     
+    havePlaylistPosition = false;
     playlistPosition = 0;
     
     free(trackName);
@@ -531,7 +532,8 @@ void IPodWrapper::handlePlaylistPosition(unsigned long _playlistPosition) {
 
     // DEBUG_PGM_PRINTLN("[wrap] servicing playlist position update");
     
-    if (playlistPosition != _playlistPosition) {
+    if ((! havePlaylistPosition) || (playlistPosition != _playlistPosition)) {
+        havePlaylistPosition = true;
         playlistPosition = _playlistPosition;
         
         if (pTrackChangedHandler != NULL) {
