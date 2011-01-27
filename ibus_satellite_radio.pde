@@ -27,11 +27,13 @@
 #include "pgm_util.h"
 
 // @todo look into whether the preprocessor will magically convert 
-//   strlen("foo") -> 3
-// https://lists.linux-foundation.org/pipermail/openais/2010-March/014011.html
-// … erm, no. but:
-// http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=32181&start=0
-//   sizeof() is compile-time?
+// strlen("foo") -> 3
+//    https://lists.linux-foundation.org/pipermail/openais/2010-March/014011.html
+// … possibly; see the comment about strlen() in the section on the 
+// "freestanding" compiler option:
+//    http://www.nongnu.org/avr-libc/user-manual/using__tools.html#gcc_minusW
+// sizeof() is compile-time?
+//    http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=32181&start=0
 #define IBUS_DATA_END_MARKER() "\xAA\xBB"
 #define ibus_data(_DATA) PSTR((_DATA IBUS_DATA_END_MARKER()))
 
