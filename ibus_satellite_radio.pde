@@ -6,6 +6,7 @@
     • occasionally gets stuck in paused mode
     • occasionally the iPodWrapper doesn't trigger a metadata update
     • occasionally the first text update has garbage at the end
+    • need to deal with millis() rollover
  */
 #define DEBUG 1
 #define DEBUG_PACKET_PARSING 0
@@ -28,6 +29,9 @@
 // @todo look into whether the preprocessor will magically convert 
 //   strlen("foo") -> 3
 // https://lists.linux-foundation.org/pipermail/openais/2010-March/014011.html
+// … erm, no. but:
+// http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&t=32181&start=0
+//   sizeof() is compile-time?
 #define IBUS_DATA_END_MARKER() "\xAA\xBB"
 #define ibus_data(_DATA) PSTR((_DATA IBUS_DATA_END_MARKER()))
 
@@ -88,6 +92,10 @@ const char *IBUS_DATA_END_MARKER = IBUS_DATA_END_MARKER();
 // data is valid.
 #define MAX_EXPECTED_LEN 64
 
+#if MAX_EXPECTED_LEN > RX_BUFFER_SIZE
+    #error MAX_EXPECTED_LEN bigger than RX_BUFFER_SIZE in HardwareSerial.h
+#endif
+
 #define TX_BUF_LEN 80
 #define RX_BUF_LEN (MAX_EXPECTED_LEN + 2)
 
@@ -131,25 +139,38 @@ typedef struct __sat_state {
 
 SatState satelliteState = {1, 1, 0, SDRS_STATUS_UNKNOWN, false};
 
+/*
+ * time-keeping variables
+ */
 // timestamp of last poll from radio
-unsigned long lastPoll;
+unsigned long lastPoll; // 20s timeout
 
 // trigger time to turn off LED
-unsigned long ledOffTime;
+unsigned long ledOffTime; // 500ms interval
 
 // timeout duration before giving up on a read
-unsigned long readTimeout;
-
-SoftwareSerial nssIPod(IPOD_RX_PIN, IPOD_TX_PIN, false, false, true);
-IPodWrapper iPodWrapper;
-
-IPodWrapper::IPodPlayingState iPodPlayState;
+unsigned long readTimeout; // variable
 
 #if DEBUG
-    unsigned long lastFreeMemCheck;
-    
+    unsigned long lastFreeMemCheck; // 10s, or more frequently
+#endif /* DEBUG */
+
+// the 47k pull-down on the RX pin allows the iPodWrapper to detect the 
+// presence of the iPod
+SoftwareSerial nssIPod(
+    IPOD_RX_PIN, // RX pin
+    IPOD_TX_PIN, // TX pin
+    false,       // inverse_logic
+    false,       // disable_rx
+    true         // disable_pullup
+);
+
+#if DEBUG
     SoftwareSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
 #endif
+
+IPodWrapper iPodWrapper;
+IPodWrapper::IPodPlayingState iPodPlayState;
 
 #define CHANNEL_TEXT_LENGTH 10
 char channel_text_data[CHANNEL_TEXT_LENGTH + 1];
@@ -475,16 +496,15 @@ boolean process_incoming_data() {
         
         if (
             (data_len == 0)                || // length cannot be zero
-            (data_len >= MAX_EXPECTED_LEN) || // we don't handle messages larger than this
-            (data_len >= RX_BUFFER_SIZE)      // hard limit to how much data we can buffer
+            (data_len >= MAX_EXPECTED_LEN)    // we don't handle messages larger than this
         ) {
             DEBUG_PGM_PRINTLN("[IBus] invalid packet length");
             
             #if DEBUG && DEBUG_PACKET_PARSING
                      if (data_len == 0) DEBUG_PGM_PRINTLN("[pkt] length cannot be zero");
                 else if (data_len >= MAX_EXPECTED_LEN) DEBUG_PGM_PRINTLN("[pkt] we don't handle messages larger than this");
-                else if (data_len >= RX_BUFFER_SIZE) DEBUG_PGM_PRINTLN("[pkt] hard limit to how much data we can buffer");
             #endif
+            
             Serial.remove(1);
         }
         else {
