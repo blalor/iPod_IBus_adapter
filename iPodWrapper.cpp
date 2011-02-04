@@ -16,6 +16,7 @@
  **/
 
 #include "pgm_util.h"
+#include "pins_arduino.h"
 
 #if DEBUG
     extern Print *console;
@@ -59,7 +60,9 @@ void IPodWrapper::setPlayStateChangedHandler(IPodPlayingStateChangedHandler_t ne
 
 // {{{ IPodWrapper::init
 void IPodWrapper::init(Stream *_stream, uint8_t _rxPin) {
-    rxPin = _rxPin;
+	rx_bitmask = digitalPinToBitMask(_rxPin);
+	rx_port = portInputRegister(digitalPinToPort(_rxPin));
+
     stream = _stream;
     lastUpdateInvocation = millis();
     
@@ -251,7 +254,7 @@ void IPodWrapper::update() {
     }
 
     if (mode == MODE_UNKNOWN) {
-        if (digitalRead(rxPin) == HIGH) {
+        if (*rx_port & rx_bitmask) {
             // transition from not-found to found
             DEBUG_PGM_PRINTLN("[wrap] iPod found");
             
@@ -261,7 +264,7 @@ void IPodWrapper::update() {
         }
     }
     else if (mode == MODE_SIMPLE) {
-        if (digitalRead(rxPin) == LOW) {
+        if (! (*rx_port & rx_bitmask)) {
             // transition from found to not-found
             DEBUG_PGM_PRINTLN("[wrap] iPod went away in simple mode; switching to MODE_UNKNOWN");
             reset();

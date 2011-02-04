@@ -37,7 +37,9 @@ public:
     typedef void IPodPlayingStateChangedHandler_t(IPodPlayingState playingState);
 
 private:
-    uint8_t rxPin;
+	uint8_t rx_bitmask;
+	volatile uint8_t *rx_port;
+	
     Stream *stream;
     
     iPodSerial *activeRemote;
