@@ -111,5 +111,31 @@ questions for Josh's setup:
 • how change band (actually, preset bank)? -- sat
 
 
-class SatelliteRadio:
-    
+mini-din 8 pinout:
+1 — ipod_txd (from ipod to µC)
+2 — ipod_rxd_3v3 (from µC to to ipod @ 3.3v)
+3 — +5v
+4 — n/c
+5 — gnd
+6 — line_out_r
+7 — audio_gnd
+8 — line_out_l
+
+ipod connector board pinout:
+1 — audio_gnd
+2 — right_out
+3 — left_out
+4 — ipod_tx
+5 — ipod_rx
+6 — vcc (+5v)
+7 — gnd
+
+signal | ipod | DIN | color
+-------+------+-----+--------
+a_gnd  |   1  |  7  | blue
+right  |   2  |  6  | green
+left   |   3  |  8  | violet
+txd    |   4  |  1  | black
+rxd    |   5  |  2  | brown
+vcc    |   6  |  3  | red
+gnd    |   7  |  5  | yellow
