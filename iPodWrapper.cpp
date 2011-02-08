@@ -314,7 +314,14 @@ void IPodWrapper::update() {
         // switch, update the timestamp here, too.
         // updateAdvancedModeExpirationTimestamp();
     }
-    else if ((mode == MODE_SIMPLE) && advancedModeRequested) {
+    else if (
+        (oldMode != MODE_UNKNOWN) && 
+        (mode == MODE_SIMPLE) &&
+        advancedModeRequested
+    ) {
+        // if we immediately go from unknown -> simple -> advanced in a single
+        // call to update(), syncPlayingState() will send simple mode commands
+        // after the switch-to-advanced mode command.
         switchToAdvanced();
     }
     else if (
@@ -325,7 +332,9 @@ void IPodWrapper::update() {
     }
     
     if (isPresent()) {
-        syncPlayingState();
+        if (mode != MODE_SWITCHING_TO_ADVANCED) {
+            syncPlayingState();
+        }
 
         if (isAdvancedModeActive()) {
             // DEBUG_PGM_PRINTLN("[wrap] advanced mode is active");
