@@ -18,7 +18,6 @@
 #include <avr/wdt.h>
 
 #include <SoftwareSerial.h>
-#include <AVRSoftUart.h>
 
 // this is to make the Arduino include-path kludge-ifier work for iPodWrapper.h
 #include <AdvancedRemote.h>
@@ -159,7 +158,13 @@ unsigned long readTimeout; // variable
 
 // the 47k pull-down on the RX pin allows the iPodWrapper to detect the 
 // presence of the iPod
-AVRSoftUart softUartIPod;
+SoftwareSerial nssIPod(
+    IPOD_RX_PIN, // RX pin
+    IPOD_TX_PIN, // TX pin
+    false,       // inverse_logic
+    false,       // disable_rx
+    true         // disable_pullup
+);
 
 #if DEBUG
     SoftwareSerial nssConsole(CONSOLE_RX_PIN, CONSOLE_TX_PIN);
@@ -330,6 +335,9 @@ void setup() {
     // implementation (emitter-follower)?  19,200 works in both simple and
     // advanced modes, however, even with the iPhone, it seems!
     
+    nssIPod.begin(19200);
+    // nssIPod.begin(iPodSerial::IPOD_SERIAL_RATE);
+    
     iPodPlayState = IPodWrapper::PLAY_STATE_UNKNOWN;
     
     // for notification when the currently-playing track changes
@@ -341,7 +349,7 @@ void setup() {
     // for notification when mode changes between simple and advanced
     iPodWrapper.setModeChangedHandler(iPodModeChangedHandler);
 
-    iPodWrapper.init(&softUartIPod, IPOD_RX_PIN);
+    iPodWrapper.init(&nssIPod, IPOD_RX_PIN);
     
     iPodWrapper.setAdvanced();
     
