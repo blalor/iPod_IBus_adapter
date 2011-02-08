@@ -6,8 +6,12 @@
     • need to deal with millis() rollover
     • iPod still stops responding, occasionally
     • occasionally doesn't get metadata after iPod reconnect
+    • still shows garbage at end of metadata strings after startup
+    
+    Current status: iPod operation appears reliable on my workbench and in the
+    BMW.
  */
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG_PACKET_PARSING 0
 #define WICKED_VERBOSE 0
 
