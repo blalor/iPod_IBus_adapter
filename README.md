@@ -7,4 +7,4 @@ I originally started this project because I wanted to put the radio from an '06 
 
 The end result is pretty much what I was going for, but there are some bugs to be worked out.
 
-For more info, see the [Wiki](https://github.com/blalor/iPod_IBus_adapter/wiki/_access)
+For more info, see the [Wiki](https://github.com/blalor/iPod_IBus_adapter/wiki/)
