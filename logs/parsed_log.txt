@@ -1,0 +1,623 @@
+    0ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10001ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10001ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10001ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10000ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10000ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10014ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 5999ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   31ms:  SDRS --> RAD : <3E 02 00 18 12 04                                                            > [02]            Status update: channel 24, preset bank 1, preset num 2 | 
+    0ms:  SDRS --> RAD : <3E 02 00 18 12 04                                                            > [02]            Status update: channel 24, preset bank 1, preset num 2 | 
+  125ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   32ms:  SDRS --> RAD : <3E 02 00 18 12 04                                                            > [02]            Status update: channel 24, preset bank 1, preset num 2 | 
+ 1812ms:  SDRS --> RAD : <3E 01 00 18 12 04 4C 69 74 68 69 75 6D 20                                    > [01]         Chan text update: channel 24, preset bank 1, preset num 2 | Lithium 
+ 2015ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10015ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2327ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 18 01 01 50 65 61 72 6C 20 4A 61 6D                                 > [01]         INF1 text update: channel 24, preset bank 0, preset num 1 | Pearl Jam
+ 7624ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 6920ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 18 01 01 50 65 61 72 6C 20 4A 61 6D                                 > [01]         INF1 text update: channel 24, preset bank 0, preset num 1 | Pearl Jam
+ 3031ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   32ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9733ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   46ms:  SDRS --> RAD : <3E 01 06 18 01 01 50 65 61 72 6C 20 4A 61 6D                                 > [01]         INF1 text update: channel 24, preset bank 0, preset num 1 | Pearl Jam
+  204ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2343ms:  RAD  --> SDRS: <3D 0F 00                                                                     > [0F] inf, 2nd press (song)
+   47ms:  SDRS --> RAD : <3E 01 07 18 01 01 4A 65 72 65 6D 79                                          > [01]         INF2 text update: channel 24, preset bank 0, preset num 1 | Jeremy
+ 7609ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 5890ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   31ms:  SDRS --> RAD : <3E 01 06 18 01 01 50 65 61 72 6C 20 4A 61 6D                                 > [01]         INF1 text update: channel 24, preset bank 0, preset num 1 | Pearl Jam
+  797ms:  RAD  --> SDRS: <3D 0F 00                                                                     > [0F] inf, 2nd press (song)
+   47ms:  SDRS --> RAD : <3E 01 07 18 01 01 4A 65 72 65 6D 79                                          > [01]         INF2 text update: channel 24, preset bank 0, preset num 1 | Jeremy
+ 3234ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2203ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 18 01 01 50 65 61 72 6C 20 4A 61 6D                                 > [01]         INF1 text update: channel 24, preset bank 0, preset num 1 | Pearl Jam
+ 7749ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2843ms:  RAD  --> SDRS: <3D 08 02                                                                     > [08] recall preset 2
+   16ms:  SDRS --> RAD : <3E 02 00 18 12 04 4C 69 74 68 69 75 6D 20                                    > [02]            Status update: channel 24, preset bank 1, preset num 2 | Lithium 
+ 2109ms:  SDRS --> RAD : <3E 01 00 18 12 04 4C 69 74 68 69 75 6D 20                                    > [01]         Chan text update: channel 24, preset bank 1, preset num 2 | Lithium 
+ 1750ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   31ms:  SDRS --> RAD : <3E 02 00 1A 11 04 4C 69 74 68 69 75 6D 20                                    > [02]            Status update: channel 26, preset bank 1, preset num 1 | Lithium 
+ 2078ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+ 1171ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 5780ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 1A 01 01 4A 61 70 61 6E 64 72 6F 69 64 73                           > [01]         INF1 text update: channel 26, preset bank 0, preset num 1 | Japandroids
+ 4171ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2984ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 1A 01 01 4A 61 70 61 6E 64 72 6F 69 64 73                           > [01]         INF1 text update: channel 26, preset bank 0, preset num 1 | Japandroids
+ 1390ms:  RAD  --> SDRS: <3D 0F 00                                                                     > [0F] inf, 2nd press (song)
+   47ms:  SDRS --> RAD : <3E 01 07 1A 01 01 59 6F 75 6E 67 65 72 20 55 73                              > [01]         INF2 text update: channel 26, preset bank 0, preset num 1 | Younger Us
+ 5530ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  578ms:  RAD  --> SDRS: <3D 08 04                                                                     > [08] recall preset 4
+   32ms:  SDRS --> RAD : <3E 02 00 15 14 04 53 49 52 49 58 4D 20 55                                    > [02]            Status update: channel 21, preset bank 1, preset num 4 | SIRIXM U
+ 1374ms:  SDRS --> RAD : <3E 01 00 15 14 04 41 6C 74 20 4E 61 74 6E                                    > [01]         Chan text update: channel 21, preset bank 1, preset num 4 | Alt Natn
+ 4328ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   15ms:  SDRS --> RAD : <3E 01 06 15 01 01                                                            > [01]         INF1 text update: channel 21, preset bank 0, preset num 1 | 
+ 3687ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 4624ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   63ms:  SDRS --> RAD : <3E 01 06 15 01 01 59 65 61 68 20 59 65 61 68 20 59 65 61 68 73               > [01]         INF1 text update: channel 21, preset bank 0, preset num 1 | Yeah Yeah Yeahs
+ 5311ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 3218ms:  RAD  --> SDRS: <3D 03 00                                                                     > [03] channel up
+   31ms:  SDRS --> RAD : <3E 02 00 16 10 04 41 6C 74 20 4E 61 74 6E                                    > [02]            Status update: channel 22, preset bank 1, preset num 0 | Alt Natn
+ 1969ms:  RAD  --> SDRS: <3D 04 00                                                                     > [04] channel down
+   15ms:  SDRS --> RAD : <3E 01 00 16 10 04 31 73 74 20 57 61 76 65                                    > [01]         Chan text update: channel 22, preset bank 1, preset num 0 | 1st Wave
+   32ms:  SDRS --> RAD : <3E 03 00 15 14 04 31 73 74 20 57 61 76 65                                    > [03]              Chan DN ACK: channel 21, preset bank 1, preset num 4 | 1st Wave
+ 2530ms:  SDRS --> RAD : <3E 01 00 15 14 04 41 6C 74 20 4E 61 74 6E                                    > [01]         Chan text update: channel 21, preset bank 1, preset num 4 | Alt Natn
+ 1578ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   31ms:  SDRS --> RAD : <3E 02 00 1A 11 04 41 6C 74 20 4E 61 74 6E                                    > [02]            Status update: channel 26, preset bank 1, preset num 1 | Alt Natn
+  610ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1359ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+ 7123ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 1A 20 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 2, preset num 0 | SIRIXM U
+ 1406ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  625ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   32ms:  SDRS --> RAD : <3E 02 00 21 21 04 53 49 52 49 58 4D 20 55                                    > [02]            Status update: channel 33, preset bank 2, preset num 1 | SIRIXM U
+  999ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  125ms:  RAD  --> SDRS: <3D 08 06                                                                     > [08] recall preset 6
+   16ms:  SDRS --> RAD : <3E 02 00 18 26 04 53 49 52 49 58 4D 20 55                                    > [02]            Status update: channel 24, preset bank 2, preset num 6 | SIRIXM U
+ 1187ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 02 00 18 30 04 53 49 52 49 58 4D 20 55                                    > [02]            Status update: channel 24, preset bank 3, preset num 0 | SIRIXM U
+  953ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  125ms:  RAD  --> SDRS: <3D 08 06                                                                     > [08] recall preset 6
+   16ms:  SDRS --> RAD : <3E 02 00 95 36 04 53 49 52 49 58 4D 20 55                                    > [02]            Status update: channel 149, preset bank 3, preset num 6 | SIRIXM U
+ 2343ms:  SDRS --> RAD : <3E 01 00 95 36 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 3, preset num 6 | BOS-PHL 
+ 3453ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 6202ms:  RAD  --> SDRS: <3D 14 00                                                                     > [14] hold SAT (ESN request)
+   31ms:  SDRS --> RAD : <3E 01 0C 30 30 30 32 31 30 34 38 38 31 36 36                                 > [01]          ESN text update: channel 48, preset bank 3, preset num 0 | 210488166
+ 3765ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 7999ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  124ms:  SDRS --> RAD : <3E 01 00 95 10 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 1, preset num 0 | BOS-PHL 
+ 1875ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 5046ms:  RAD  --> SDRS: <3D 07 00                                                                     > [07] hold "M"
+   15ms:  SDRS --> RAD : <3E 12 00 96 10 04 42 4F 53 2D 50 48 4C 20                                    > [12] [SC]       Status update: channel 150, preset bank 1, preset num 0 | BOS-PHL 
+ 2016ms:  SDRS --> RAD : <3E 11 00 96 10 04 4C 41 20 20 20 20 20 20                                    > [11] [SC]    Chan text update: channel 150, preset bank 1, preset num 0 | LA      
+ 2921ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1827ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+ 1719ms:  SDRS --> RAD : <3E 01 00 96 10 04 4C 41 20 20 20 20 20 20                                    > [01]         Chan text update: channel 150, preset bank 1, preset num 0 | LA      
+  343ms:  RAD  --> SDRS: <3D 08 06                                                                     > [08] recall preset 6
+   16ms:  SDRS --> RAD : <3E 02 00 09 16 04 4C 41 20 20 20 20 20 20                                    > [02]            Status update: channel 9, preset bank 1, preset num 6 | LA      
+ 1062ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  125ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   16ms:  SDRS --> RAD : <3E 02 00 1A 11 04 4C 41 20 20 20 20 20 20                                    > [02]            Status update: channel 26, preset bank 1, preset num 1 | LA      
+ 3546ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+ 1344ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2015ms:  RAD  --> SDRS: <3D 01 00                                                                     > [01] turn off, or mode (deactivate?)
+   16ms:  SDRS --> RAD : <3E 00 00 1A 11 04                                                            > [00] "....."
+ 1015ms:  SDRS --> RAD : <3E 00 00 1A 11 04                                                            > [00] "....."
+ 5140ms:  RAD  --> BCST: <02 04                                                                        > [??] Device status ready Bit2
+    0ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   31ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+    0ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+  125ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  110ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+ 1546ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  609ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+ 9389ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1749ms:  RAD  --> SDRS: <3D 01 00                                                                     > [01] turn off, or mode (deactivate?)
+   32ms:  SDRS --> RAD : <3E 00 00 1A 11 04                                                            > [00] "....."
+  999ms:  SDRS --> RAD : <3E 00 00 1A 11 04                                                            > [00] "....."
+ 5390ms:  RAD  --> BCST: <02 04                                                                        > [??] Device status ready Bit2
+   16ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   15ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+   16ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+   94ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  109ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+ 1578ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  141ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+ 9639ms:  RAD  --> SDRS: <3D 01 00                                                                     > [01] turn off, or mode (deactivate?)
+   31ms:  SDRS --> RAD : <3E 00 00 1A 11 04                                                            > [00] "....."
+  187ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  813ms:  SDRS --> RAD : <3E 00 00 1A 11 04                                                            > [00] "....."
+ 8904ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   16ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+   15ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+  125ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   16ms:  SDRS --> RAD : <3E 02 00 1A 11 04                                                            > [02]            Status update: channel 26, preset bank 1, preset num 1 | 
+  125ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1218ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+ 8780ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 4921ms:  RAD  --> SDRS: <3D 04 00                                                                     > [04] channel down
+   16ms:  SDRS --> RAD : <3E 03 00 19 10 04 53 49 52 49 58 4D 20 55                                    > [03]              Chan DN ACK: channel 25, preset bank 1, preset num 0 | SIRIXM U
+ 1718ms:  SDRS --> RAD : <3E 01 00 19 10 04 47 61 72 61 67 65 20 20                                    > [01]         Chan text update: channel 25, preset bank 1, preset num 0 | Garage  
+ 3343ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 7265ms:  RAD  --> SDRS: <3D 06 00                                                                     > [06] hold channel down
+   15ms:  SDRS --> RAD : <3E 05 00 18 12 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 24, preset bank 1, preset num 2 | Garage  
+  203ms:  SDRS --> RAD : <3E 05 00 17 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 23, preset bank 1, preset num 0 | Garage  
+  203ms:  SDRS --> RAD : <3E 05 00 16 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 22, preset bank 1, preset num 0 | Garage  
+  203ms:  SDRS --> RAD : <3E 05 00 15 14 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 21, preset bank 1, preset num 4 | Garage  
+  204ms:  SDRS --> RAD : <3E 05 00 14 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 20, preset bank 1, preset num 0 | Garage  
+  187ms:  SDRS --> RAD : <3E 05 00 13 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 19, preset bank 1, preset num 0 | Garage  
+  219ms:  SDRS --> RAD : <3E 05 00 12 13 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 18, preset bank 1, preset num 3 | Garage  
+  187ms:  SDRS --> RAD : <3E 05 00 11 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 17, preset bank 1, preset num 0 | Garage  
+  203ms:  SDRS --> RAD : <3E 05 00 10 15 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 16, preset bank 1, preset num 5 | Garage  
+  219ms:  SDRS --> RAD : <3E 05 00 0F 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 15, preset bank 1, preset num 0 | Garage  
+  187ms:  SDRS --> RAD : <3E 05 00 0E 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 14, preset bank 1, preset num 0 | Garage  
+  203ms:  SDRS --> RAD : <3E 05 00 0D 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 13, preset bank 1, preset num 0 | Garage  
+  204ms:  SDRS --> RAD : <3E 05 00 0C 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 12, preset bank 1, preset num 0 | Garage  
+  203ms:  SDRS --> RAD : <3E 05 00 0B 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 11, preset bank 1, preset num 0 | Garage  
+  109ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+   94ms:  SDRS --> RAD : <3E 05 00 0A 10 04 47 61 72 61 67 65 20 20                                    > [05]      hold Chan DN update: channel 10, preset bank 1, preset num 0 | Garage  
+   31ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   31ms:  SDRS --> RAD : <3E 02 00 0A 10 04 47 61 72 61 67 65 20 20                                    > [02]            Status update: channel 10, preset bank 1, preset num 0 | Garage  
+ 1687ms:  SDRS --> RAD : <3E 01 00 0A 10 04 45 20 53 74 72 65 65 74                                    > [01]         Chan text update: channel 10, preset bank 1, preset num 0 | E Street
+ 4000ms:  RAD  --> SDRS: <3D 05 00                                                                     > [05] hold channel up
+   31ms:  SDRS --> RAD : <3E 04 00 0B 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 11, preset bank 1, preset num 0 | E Street
+  187ms:  SDRS --> RAD : <3E 04 00 0C 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 12, preset bank 1, preset num 0 | E Street
+  203ms:  SDRS --> RAD : <3E 04 00 0D 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 13, preset bank 1, preset num 0 | E Street
+  219ms:  SDRS --> RAD : <3E 04 00 0E 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 14, preset bank 1, preset num 0 | E Street
+  188ms:  SDRS --> RAD : <3E 04 00 0F 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 15, preset bank 1, preset num 0 | E Street
+  203ms:  SDRS --> RAD : <3E 04 00 10 15 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 16, preset bank 1, preset num 5 | E Street
+  187ms:  SDRS --> RAD : <3E 04 00 11 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 17, preset bank 1, preset num 0 | E Street
+  219ms:  SDRS --> RAD : <3E 04 00 12 13 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 18, preset bank 1, preset num 3 | E Street
+  203ms:  SDRS --> RAD : <3E 04 00 13 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 19, preset bank 1, preset num 0 | E Street
+  187ms:  SDRS --> RAD : <3E 04 00 14 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 20, preset bank 1, preset num 0 | E Street
+  219ms:  SDRS --> RAD : <3E 04 00 15 14 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 21, preset bank 1, preset num 4 | E Street
+  188ms:  SDRS --> RAD : <3E 04 00 16 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 22, preset bank 1, preset num 0 | E Street
+  203ms:  SDRS --> RAD : <3E 04 00 17 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 23, preset bank 1, preset num 0 | E Street
+  218ms:  SDRS --> RAD : <3E 04 00 18 12 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 24, preset bank 1, preset num 2 | E Street
+  188ms:  SDRS --> RAD : <3E 04 00 19 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 25, preset bank 1, preset num 0 | E Street
+  203ms:  SDRS --> RAD : <3E 04 00 1A 11 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 26, preset bank 1, preset num 1 | E Street
+  187ms:  SDRS --> RAD : <3E 04 00 1B 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 27, preset bank 1, preset num 0 | E Street
+  219ms:  SDRS --> RAD : <3E 04 00 1C 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 28, preset bank 1, preset num 0 | E Street
+  203ms:  SDRS --> RAD : <3E 04 00 1D 10 04 45 20 53 74 72 65 65 74                                    > [04]      hold Chan UP update: channel 29, preset bank 1, preset num 0 | E Street
+  141ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   31ms:  SDRS --> RAD : <3E 02 00 1D 10 04 45 20 53 74 72 65 65 74                                    > [02]            Status update: channel 29, preset bank 1, preset num 0 | E Street
+  328ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1203ms:  SDRS --> RAD : <3E 01 00 1D 10 04 54 68 65 20 4C 6F 66 74                                    > [01]         Chan text update: channel 29, preset bank 1, preset num 0 | The Loft
+ 8795ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9982ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  937ms:  RAD  --> SDRS: <3D 07 00                                                                     > [07] hold "M"
+   16ms:  SDRS --> RAD : <3E 12 00 1E 10 04 54 68 65 20 4C 6F 66 74                                    > [12] [SC]       Status update: channel 30, preset bank 1, preset num 0 | The Loft
+ 1562ms:  SDRS --> RAD : <3E 11 00 1E 10 04 43 6F 66 66 65 48 73 65                                    > [11] [SC]    Chan text update: channel 30, preset bank 1, preset num 0 | CoffeHse
+ 7483ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2577ms:  SDRS --> RAD : <3E 12 00 1F 10 04 43 6F 66 66 65 48 73 65                                    > [12] [SC]       Status update: channel 31, preset bank 1, preset num 0 | CoffeHse
+ 2031ms:  SDRS --> RAD : <3E 11 00 1F 10 04 4D 61 72 67 76 6C 6C 65                                    > [11] [SC]    Chan text update: channel 31, preset bank 1, preset num 0 | Margvlle
+ 4780ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  610ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1391ms:  SDRS --> RAD : <3E 01 00 1F 10 04 4D 61 72 67 76 6C 6C 65                                    > [01]         Chan text update: channel 31, preset bank 1, preset num 0 | Margvlle
+ 8607ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10013ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  313ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   31ms:  SDRS --> RAD : <3E 02 00 1A 11 04 4D 61 72 67 76 6C 6C 65                                    > [02]            Status update: channel 26, preset bank 1, preset num 1 | Margvlle
+ 1906ms:  SDRS --> RAD : <3E 01 00 1A 11 04 53 49 52 49 58 4D 20 55                                    > [01]         Chan text update: channel 26, preset bank 1, preset num 1 | SIRIXM U
+  781ms:  RAD  --> SDRS: <3D 08 02                                                                     > [08] recall preset 2
+   31ms:  SDRS --> RAD : <3E 02 00 18 12 04 53 49 52 49 58 4D 20 55                                    > [02]            Status update: channel 24, preset bank 1, preset num 2 | SIRIXM U
+ 1641ms:  SDRS --> RAD : <3E 01 00 18 12 04 4C 69 74 68 69 75 6D 20                                    > [01]         Chan text update: channel 24, preset bank 1, preset num 2 | Lithium 
+ 3733ms:  RAD  --> SDRS: <3D 08 03                                                                     > [08] recall preset 3
+   16ms:  SDRS --> RAD : <3E 02 00 12 13 04 4C 69 74 68 69 75 6D 20                                    > [02]            Status update: channel 18, preset bank 1, preset num 3 | Lithium 
+ 1562ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  250ms:  SDRS --> RAD : <3E 01 00 12 13 04 53 70 65 63 74 72 75 6D                                    > [01]         Chan text update: channel 18, preset bank 1, preset num 3 | Spectrum
+ 5015ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 12 25 04 53 70 65 63 74 72 75 6D                                    > [01]         Chan text update: channel 18, preset bank 2, preset num 5 | Spectrum
+  422ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  140ms:  SDRS --> RAD : <3E 01 00 12 30 04 53 70 65 63 74 72 75 6D                                    > [01]         Chan text update: channel 18, preset bank 3, preset num 0 | Spectrum
+ 4062ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 8201ms:  RAD  --> SDRS: <3D 09 01                                                                     > [09] set preset 1
+ 1016ms:  SDRS --> RAD : <3E 01 01 00 31                                                               > [01]         UNKN text update: channel 0, preset bank 3, preset num 1 | 
+  781ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10029ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 8264ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 12 01 01 4E 65 65 64 54 6F 42 72 65 61 74 68 65                     > [01]         INF1 text update: channel 18, preset bank 0, preset num 1 | NeedToBreathe
+ 1703ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1203ms:  RAD  --> SDRS: <3D 0F 00                                                                     > [0F] inf, 2nd press (song)
+   47ms:  SDRS --> RAD : <3E 01 07 12 01 01 4D 6F 72 65 20 54 69 6D 65                                 > [01]         INF2 text update: channel 18, preset bank 0, preset num 1 | More Time
+ 6858ms:  RAD  --> SDRS: <3D 14 00                                                                     > [14] hold SAT (ESN request)
+   15ms:  SDRS --> RAD : <3E 01 0C 30 30 30 32 31 30 34 38 38 31 36 36                                 > [01]          ESN text update: channel 48, preset bank 3, preset num 0 | 210488166
+ 1875ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 4108ms:  RAD  --> SDRS: <3D 04 00                                                                     > [04] channel down
+   31ms:  SDRS --> RAD : <3E 03 00 11 30 04 53 70 65 63 74 72 75 6D                                    > [03]              Chan DN ACK: channel 17, preset bank 3, preset num 0 | Spectrum
+ 1766ms:  SDRS --> RAD : <3E 01 00 11 30 04 4A 61 6D 5F 4F 4E 20 20                                    > [01]         Chan text update: channel 17, preset bank 3, preset num 0 | Jam_ON  
+ 4108ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10014ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 5937ms:  RAD  --> SDRS: <3D 04 00                                                                     > [04] channel down
+   15ms:  SDRS --> RAD : <3E 03 00 10 30 04 4A 61 6D 5F 4F 4E 20 20                                    > [03]              Chan DN ACK: channel 16, preset bank 3, preset num 0 | Jam_ON  
+ 1797ms:  SDRS --> RAD : <3E 01 00 10 30 04 44 65 65 70 54 72 6B 73                                    > [01]         Chan text update: channel 16, preset bank 3, preset num 0 | DeepTrks
+ 2249ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 7514ms:  RAD  --> SDRS: <3D 04 00                                                                     > [04] channel down
+   16ms:  SDRS --> RAD : <3E 03 00 0F 30 04 44 65 65 70 54 72 6B 73                                    > [03]              Chan DN ACK: channel 15, preset bank 3, preset num 0 | DeepTrks
+ 2171ms:  SDRS --> RAD : <3E 01 00 0F 30 04 43 6C 73 52 65 77 6E 64                                    > [01]         Chan text update: channel 15, preset bank 3, preset num 0 | ClsRewnd
+  297ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1687ms:  RAD  --> SDRS: <3D 03 00                                                                     > [03] channel up
+   31ms:  SDRS --> RAD : <3E 02 00 10 30 04 43 6C 73 52 65 77 6E 64                                    > [02]            Status update: channel 16, preset bank 3, preset num 0 | ClsRewnd
+ 1828ms:  SDRS --> RAD : <3E 01 00 10 30 04 44 65 65 70 54 72 6B 73                                    > [01]         Chan text update: channel 16, preset bank 3, preset num 0 | DeepTrks
+ 2437ms:  RAD  --> SDRS: <3D 04 00                                                                     > [04] channel down
+   31ms:  SDRS --> RAD : <3E 03 00 0F 30 04 44 65 65 70 54 72 6B 73                                    > [03]              Chan DN ACK: channel 15, preset bank 3, preset num 0 | DeepTrks
+ 1859ms:  SDRS --> RAD : <3E 01 00 0F 30 04 43 6C 73 52 65 77 6E 64                                    > [01]         Chan text update: channel 15, preset bank 3, preset num 0 | ClsRewnd
+ 1750ms:  RAD  --> SDRS: <3D 03 00                                                                     > [03] channel up
+   31ms:  SDRS --> RAD : <3E 02 00 10 30 04 43 6C 73 52 65 77 6E 64                                    > [02]            Status update: channel 16, preset bank 3, preset num 0 | ClsRewnd
+  344ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1641ms:  SDRS --> RAD : <3E 01 00 10 30 04 44 65 65 70 54 72 6B 73                                    > [01]         Chan text update: channel 16, preset bank 3, preset num 0 | DeepTrks
+ 6405ms:  RAD  --> SDRS: <3D 03 00                                                                     > [03] channel up
+   31ms:  SDRS --> RAD : <3E 02 00 11 30 04 44 65 65 70 54 72 6B 73                                    > [02]            Status update: channel 17, preset bank 3, preset num 0 | DeepTrks
+ 1734ms:  SDRS --> RAD : <3E 01 00 11 30 04 4A 61 6D 5F 4F 4E 20 20                                    > [01]         Chan text update: channel 17, preset bank 3, preset num 0 | Jam_ON  
+  187ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 8842ms:  RAD  --> SDRS: <3D 07 00                                                                     > [07] hold "M"
+   31ms:  SDRS --> RAD : <3E 12 00 12 31 04 4A 61 6D 5F 4F 4E 20 20                                    > [12] [SC]       Status update: channel 18, preset bank 3, preset num 1 | Jam_ON  
+ 1109ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1031ms:  SDRS --> RAD : <3E 11 00 12 31 04 53 70 65 63 74 72 75 6D                                    > [11] [SC]    Chan text update: channel 18, preset bank 3, preset num 1 | Spectrum
+ 6359ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+ 1484ms:  SDRS --> RAD : <3E 01 00 12 31 04 53 70 65 63 74 72 75 6D                                    > [01]         Chan text update: channel 18, preset bank 3, preset num 1 | Spectrum
+ 1140ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 3937ms:  RAD  --> SDRS: <3D 05 00                                                                     > [05] hold channel up
+   31ms:  SDRS --> RAD : <3E 04 00 13 30 04 53 70 65 63 74 72 75 6D                                    > [04]      hold Chan UP update: channel 19, preset bank 3, preset num 0 | Spectrum
+  203ms:  SDRS --> RAD : <3E 04 00 14 30 04 53 70 65 63 74 72 75 6D                                    > [04]      hold Chan UP update: channel 20, preset bank 3, preset num 0 | Spectrum
+  203ms:  SDRS --> RAD : <3E 04 00 15 30 04 53 70 65 63 74 72 75 6D                                    > [04]      hold Chan UP update: channel 21, preset bank 3, preset num 0 | Spectrum
+  188ms:  SDRS --> RAD : <3E 04 00 16 30 04 53 70 65 63 74 72 75 6D                                    > [04]      hold Chan UP update: channel 22, preset bank 3, preset num 0 | Spectrum
+  203ms:  SDRS --> RAD : <3E 04 00 17 30 04 53 70 65 63 74 72 75 6D                                    > [04]      hold Chan UP update: channel 23, preset bank 3, preset num 0 | Spectrum
+   47ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   46ms:  SDRS --> RAD : <3E 02 00 17 30 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 23, preset bank 3, preset num 0 | Spectrum
+ 1953ms:  SDRS --> RAD : <3E 01 00 17 30 04 48 61 69 72 4E 61 74 6E                                    > [01]         Chan text update: channel 23, preset bank 3, preset num 0 | HairNatn
+ 3203ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 4608ms:  RAD  --> SDRS: <3D 05 00                                                                     > [05] hold channel up
+   31ms:  SDRS --> RAD : <3E 04 00 18 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 24, preset bank 3, preset num 0 | HairNatn
+  188ms:  SDRS --> RAD : <3E 04 00 19 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 25, preset bank 3, preset num 0 | HairNatn
+  219ms:  SDRS --> RAD : <3E 04 00 1A 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 26, preset bank 3, preset num 0 | HairNatn
+  187ms:  SDRS --> RAD : <3E 04 00 1B 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 27, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 1C 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 28, preset bank 3, preset num 0 | HairNatn
+  219ms:  SDRS --> RAD : <3E 04 00 1D 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 29, preset bank 3, preset num 0 | HairNatn
+  187ms:  SDRS --> RAD : <3E 04 00 1E 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 30, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 1F 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 31, preset bank 3, preset num 0 | HairNatn
+  204ms:  SDRS --> RAD : <3E 04 00 20 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 32, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 21 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 33, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 23 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 35, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 24 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 36, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 26 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 38, preset bank 3, preset num 0 | HairNatn
+  203ms:  SDRS --> RAD : <3E 04 00 27 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 39, preset bank 3, preset num 0 | HairNatn
+  187ms:  SDRS --> RAD : <3E 04 00 28 30 04 48 61 69 72 4E 61 74 6E                                    > [04]      hold Chan UP update: channel 40, preset bank 3, preset num 0 | HairNatn
+  110ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   47ms:  SDRS --> RAD : <3E 02 00 28 30 04 48 61 69 72 4E 61 74 6E                                    > [02]            Status update: channel 40, preset bank 3, preset num 0 | HairNatn
+ 1437ms:  SDRS --> RAD : <3E 01 00 28 30 04 48 69 70 2D 48 6F 70 20                                    > [01]         Chan text update: channel 40, preset bank 3, preset num 0 | Hip-Hop 
+  968ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2703ms:  RAD  --> SDRS: <3D 06 00                                                                     > [06] hold channel down
+   31ms:  SDRS --> RAD : <3E 05 00 27 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 39, preset bank 3, preset num 0 | Hip-Hop 
+  203ms:  SDRS --> RAD : <3E 05 00 26 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 38, preset bank 3, preset num 0 | Hip-Hop 
+  204ms:  SDRS --> RAD : <3E 05 00 24 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 36, preset bank 3, preset num 0 | Hip-Hop 
+  203ms:  SDRS --> RAD : <3E 05 00 23 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 35, preset bank 3, preset num 0 | Hip-Hop 
+  187ms:  SDRS --> RAD : <3E 05 00 21 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 33, preset bank 3, preset num 0 | Hip-Hop 
+  219ms:  SDRS --> RAD : <3E 05 00 20 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 32, preset bank 3, preset num 0 | Hip-Hop 
+  187ms:  SDRS --> RAD : <3E 05 00 1F 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 31, preset bank 3, preset num 0 | Hip-Hop 
+  203ms:  SDRS --> RAD : <3E 05 00 1E 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 30, preset bank 3, preset num 0 | Hip-Hop 
+  219ms:  SDRS --> RAD : <3E 05 00 1D 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 29, preset bank 3, preset num 0 | Hip-Hop 
+  188ms:  SDRS --> RAD : <3E 05 00 1C 30 04 48 69 70 2D 48 6F 70 20                                    > [05]      hold Chan DN update: channel 28, preset bank 3, preset num 0 | Hip-Hop 
+   46ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   32ms:  SDRS --> RAD : <3E 02 00 1C 30 04 48 69 70 2D 48 6F 70 20                                    > [02]            Status update: channel 28, preset bank 3, preset num 0 | Hip-Hop 
+ 1718ms:  SDRS --> RAD : <3E 01 00 1C 30 04 46 61 63 74 69 6F 6E 20                                    > [01]         Chan text update: channel 28, preset bank 3, preset num 0 | Faction 
+ 3656ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 5937ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   31ms:  SDRS --> RAD : <3E 02 00 12 31 04 46 61 63 74 69 6F 6E 20                                    > [02]            Status update: channel 18, preset bank 3, preset num 1 | Faction 
+ 1875ms:  SDRS --> RAD : <3E 01 00 12 31 04 53 70 65 63 74 72 75 6D                                    > [01]         Chan text update: channel 18, preset bank 3, preset num 1 | Spectrum
+ 2155ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2562ms:  RAD  --> SDRS: <3D 09 01                                                                     > [09] set preset 1
+ 1015ms:  SDRS --> RAD : <3E 01 01 00 31                                                               > [01]         UNKN text update: channel 0, preset bank 3, preset num 1 | 
+ 6421ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 7061ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   31ms:  SDRS --> RAD : <3E 02 00 12 31 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 18, preset bank 3, preset num 1 | Spectrum
+ 1781ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  188ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   31ms:  SDRS --> RAD : <3E 02 00 12 31 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 18, preset bank 3, preset num 1 | Spectrum
+  906ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+    0ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  218ms:  RAD  --> SDRS: <3D 08 01                                                                     > [08] recall preset 1
+   16ms:  SDRS --> RAD : <3E 02 00 12 31 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 18, preset bank 3, preset num 1 | Spectrum
+  390ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  266ms:  RAD  --> SDRS: <3D 08 02                                                                     > [08] recall preset 2
+   31ms:  SDRS --> RAD : <3E 02 00 B8 32 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 184, preset bank 3, preset num 2 | Spectrum
+ 1219ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  187ms:  RAD  --> SDRS: <3D 08 02                                                                     > [08] recall preset 2
+   31ms:  SDRS --> RAD : <3E 02 00 B8 32 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 184, preset bank 3, preset num 2 | Spectrum
+  860ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  234ms:  RAD  --> SDRS: <3D 08 03                                                                     > [08] recall preset 3
+   31ms:  SDRS --> RAD : <3E 02 00 B8 33 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 184, preset bank 3, preset num 3 | Spectrum
+ 1812ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  204ms:  RAD  --> SDRS: <3D 08 03                                                                     > [08] recall preset 3
+   15ms:  SDRS --> RAD : <3E 02 00 B8 33 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 184, preset bank 3, preset num 3 | Spectrum
+ 1687ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  250ms:  RAD  --> SDRS: <3D 08 04                                                                     > [08] recall preset 4
+   32ms:  SDRS --> RAD : <3E 02 00 B8 34 04 53 70 65 63 74 72 75 6D                                    > [02]            Status update: channel 184, preset bank 3, preset num 4 | Spectrum
+ 2515ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  110ms:  SDRS --> RAD : <3E 01 00 B8 34 04 57 65 61 74 68 65 72 20                                    > [01]         Chan text update: channel 184, preset bank 3, preset num 4 | Weather 
+  687ms:  RAD  --> SDRS: <3D 08 04                                                                     > [08] recall preset 4
+   31ms:  SDRS --> RAD : <3E 02 00 B8 34 04 57 65 61 74 68 65 72 20                                    > [02]            Status update: channel 184, preset bank 3, preset num 4 | Weather 
+ 1719ms:  SDRS --> RAD : <3E 01 00 B8 34 04 57 65 61 74 68 65 72 20                                    > [01]         Chan text update: channel 184, preset bank 3, preset num 4 | Weather 
+ 2109ms:  RAD  --> SDRS: <3D 08 05                                                                     > [08] recall preset 5
+   15ms:  SDRS --> RAD : <3E 02 00 B8 35 04 57 65 61 74 68 65 72 20                                    > [02]            Status update: channel 184, preset bank 3, preset num 5 | Weather 
+ 1422ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  234ms:  RAD  --> SDRS: <3D 08 05                                                                     > [08] recall preset 5
+   16ms:  SDRS --> RAD : <3E 02 00 B8 35 04 57 65 61 74 68 65 72 20                                    > [02]            Status update: channel 184, preset bank 3, preset num 5 | Weather 
+ 2187ms:  SDRS --> RAD : <3E 01 00 B8 35 04 57 65 61 74 68 65 72 20                                    > [01]         Chan text update: channel 184, preset bank 3, preset num 5 | Weather 
+ 1468ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2047ms:  RAD  --> SDRS: <3D 08 05                                                                     > [08] recall preset 5
+   31ms:  SDRS --> RAD : <3E 02 00 B8 35 04 57 65 61 74 68 65 72 20                                    > [02]            Status update: channel 184, preset bank 3, preset num 5 | Weather 
+ 1609ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  109ms:  RAD  --> SDRS: <3D 08 05                                                                     > [08] recall preset 5
+   32ms:  SDRS --> RAD : <3E 02 00 B8 35 04 57 65 61 74 68 65 72 20                                    > [02]            Status update: channel 184, preset bank 3, preset num 5 | Weather 
+ 2171ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  203ms:  RAD  --> SDRS: <3D 08 06                                                                     > [08] recall preset 6
+   31ms:  SDRS --> RAD : <3E 02 00 95 36 04 57 65 61 74 68 65 72 20                                    > [02]            Status update: channel 149, preset bank 3, preset num 6 | Weather 
+ 1813ms:  SDRS --> RAD : <3E 01 00 95 36 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 3, preset num 6 | BOS-PHL 
+ 1952ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 2499ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 10 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 1, preset num 0 | BOS-PHL 
+ 3390ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  141ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+ 2718ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 36 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 3, preset num 6 | BOS-PHL 
+ 1000ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  406ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 10 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 1, preset num 0 | BOS-PHL 
+  906ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  140ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+  985ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 36 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 3, preset num 6 | BOS-PHL 
+ 4561ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 10 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 1, preset num 0 | BOS-PHL 
+  594ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+  328ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  109ms:  SDRS --> RAD : <3E 01 00 95 36 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 3, preset num 6 | BOS-PHL 
+ 1469ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9670ms:  RAD  --> SDRS: <3D 14 00                                                                     > [14] hold SAT (ESN request)
+   31ms:  SDRS --> RAD : <3E 01 0C 30 30 30 32 31 30 34 38 38 31 36 36                                 > [01]          ESN text update: channel 48, preset bank 3, preset num 0 | 210488166
+  297ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10014ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  812ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 10 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 1, preset num 0 | BOS-PHL 
+ 4749ms:  RAD  --> SDRS: <3D 14 00                                                                     > [14] hold SAT (ESN request)
+   31ms:  SDRS --> RAD : <3E 01 0C 30 30 30 32 31 30 34 38 38 31 36 36                                 > [01]          ESN text update: channel 48, preset bank 3, preset num 0 | 210488166
+ 4296ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 7124ms:  RAD  --> SDRS: <3D 15 00                                                                     > [15] SAT
+  125ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+ 2749ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  906ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   63ms:  SDRS --> RAD : <3E 01 06 95 01 01 50 68 69 6C 61 64 65 6C 70 68 69 61 20 54 72 61 66 66 69 63> [01]         INF1 text update: channel 149, preset bank 0, preset num 1 | Philadelphia Traffic
+ 8420ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   62ms:  SDRS --> RAD : <3E 01 06 95 01 01 50 68 69 6C 61 64 65 6C 70 68 69 61 20 57 65 61 74 68 65 72> [01]         INF1 text update: channel 149, preset bank 0, preset num 1 | Philadelphia Weather
+  547ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  624ms:  RAD  --> SDRS: <3D 0F 00                                                                     > [0F] inf, 2nd press (song)
+   47ms:  SDRS --> RAD : <3E 01 07 95 01 01 42 6F 73 74 6F 6E 20 69 6E 20 34 20 6D 69 6E 73 2E         > [01]         INF2 text update: channel 149, preset bank 0, preset num 1 | Boston in 4 mins.
+ 9342ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1453ms:  RAD  --> SDRS: <3D 0E 00                                                                     > [0E] inf, 1st press (artist)
+   47ms:  SDRS --> RAD : <3E 01 06 95 01 01 50 68 69 6C 61 64 65 6C 70 68 69 61 20 57 65 61 74 68 65 72> [01]         INF1 text update: channel 149, preset bank 0, preset num 1 | Philadelphia Weather
+ 2140ms:  RAD  --> SDRS: <3D 0F 00                                                                     > [0F] inf, 2nd press (song)
+   62ms:  SDRS --> RAD : <3E 01 07 95 01 01 42 6F 73 74 6F 6E 20 69 6E 20 34 20 6D 69 6E 73 2E         > [01]         INF2 text update: channel 149, preset bank 0, preset num 1 | Boston in 4 mins.
+ 3375ms:  RAD  --> SDRS: <3D 01 00                                                                     > [01] turn off, or mode (deactivate?)
+   15ms:  SDRS --> RAD : <3E 00 00 95 20 04                                                            > [00] "... ."
+ 1000ms:  SDRS --> RAD : <3E 00 00 95 20 04                                                            > [00] "... ."
+ 1922ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 4187ms:  RAD  --> BCST: <02 04                                                                        > [??] Device status ready Bit2
+   15ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   16ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+   16ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+  109ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  156ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+ 1562ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+ 3937ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9686ms:  RAD  --> SDRS: <3D 01 00                                                                     > [01] turn off, or mode (deactivate?)
+   16ms:  SDRS --> RAD : <3E 00 00 95 20 04                                                            > [00] "... ."
+  297ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+  688ms:  SDRS --> RAD : <3E 00 00 95 20 04                                                            > [00] "... ."
+ 5499ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   15ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+   16ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+  141ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   31ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+ 1453ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+ 2156ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+13201ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+  172ms:  RAD  --> SDRS: <3D 02 00                                                                     > [02] Request status update ('now')
+   15ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+   31ms:  SDRS --> RAD : <3E 02 00 95 20 04                                                            > [02]            Status update: channel 149, preset bank 2, preset num 0 | 
+   32ms:  RAD  --> BCST: <02 04                                                                        > [??] Device status ready Bit2
+ 1562ms:  SDRS --> RAD : <3E 01 00 95 20 04 42 4F 53 2D 50 48 4C 20                                    > [01]         Chan text update: channel 149, preset bank 2, preset num 0 | BOS-PHL 
+ 3983ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9982ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+30009ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 1968ms:  RAD  --> SDRS: <3D 15 01                                                                     > [15] <UNKNOWN>
+   16ms:  RAD  --> SDRS: <3D 08 06                                                                     > [08] recall preset 6
+   31ms:  SDRS --> RAD : <3E 02 00 09 16 04 42 4F 53 2D 50 48 4C 20                                    > [02]            Status update: channel 9, preset bank 1, preset num 6 | BOS-PHL 
+  156ms:  RAD  --> SDRS: <3D 08 05                                                                     > [08] recall preset 5
+   31ms:  SDRS --> RAD : <3E 02 00 10 15 04 42 4F 53 2D 50 48 4C 20                                    > [02]            Status update: channel 16, preset bank 1, preset num 5 | BOS-PHL 
+  156ms:  RAD  --> SDRS: <3D 08 04                                                                     > [08] recall preset 4
+   16ms:  SDRS --> RAD : <3E 02 00 15 14 04 42 4F 53 2D 50 48 4C 20                                    > [02]            Status update: channel 21, preset bank 1, preset num 4 | BOS-PHL 
+  188ms:  RAD  --> SDRS: <3D 08 03                                                                     > [08] recall preset 3
+   15ms:  SDRS --> RAD : <3E 02 00 12 13 04 42 4F 53 2D 50 48 4C 20                                    > [02]            Status update: channel 18, preset bank 1, preset num 3 | BOS-PHL 
+  156ms:  RAD  --> SDRS: <3D 08 02                                                                     > [08] recall preset 2
+   16ms:  SDRS --> RAD : <3E 02 00 18 12 04 42 4F 53 2D 50 48 4C 20                                    > [02]            Status update: channel 24, preset bank 1, preset num 2 | BOS-PHL 
+ 3046ms:  SDRS --> RAD : <3E 01 00 18 12 04 4C 69 74 68 69 75 6D 20                                    > [01]         Chan text update: channel 24, preset bank 1, preset num 2 | Lithium 
+  391ms:  RAD  --> SDRS: <3D 08 03                                                                     > [08] recall preset 3
+   15ms:  SDRS --> RAD : <3E 02 00 12 13 04 4C 69 74 68 69 75 6D 20                                    > [02]            Status update: channel 18, preset bank 1, preset num 3 | Lithium 
+ 1891ms:  SDRS --> RAD : <3E 01 00 12 13 04 53 70 65 63 74 72 75 6D                                    > [01]         Chan text update: channel 18, preset bank 1, preset num 3 | Spectrum
+ 1921ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9983ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10013ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10029ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10014ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10060ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9983ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9982ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10013ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10045ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9967ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9999ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   15ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+   16ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+ 9998ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10013ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
+10014ms:  RAD  --> SDRS: <01                                                                           > [??] Device status request
+    0ms:  SDRS --> RAD : <02 00                                                                        > [??] Device status ready
