@@ -72,7 +72,7 @@
     <part name='R2' value='1k'>
         <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
     </part>
-    <part name='R3' value='10k'>
+    <part name='R3' value='1k'>
         <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
     </part>
     <part name='R4' value='10k'>
@@ -89,6 +89,9 @@
     </part>
     <part name='R8' value='150'>
         <device name='R-US_R0603' package='R0603' lib='rcl' />
+    </part>
+    <part name='R9' value='47k'>
+        <device name='R-US_0207/2V' package='0207/2V' lib='rcl' />
     </part>
     <part name='R13' value='150'>
         <device name='R-US_R0603' package='R0603' lib='rcl' />
