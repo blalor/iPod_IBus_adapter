@@ -113,8 +113,13 @@ prescale    target timer count  rounded timer count       (D)    (E)          % 
      128                85.805                   86     1440    1436.7816     0.2234
      256                42.402                   42     1440    1453.4883    -0.9366
     1024                 9.850                   10     1440    1420.4545     1.3573
-    
-target timer count=((16000000/A2)/(960*1.5))-1
+
+@ todo
+to detect the line being idle for 1.5 byte periods:
+    9600-8-e-1 => 11 bits/byte
+    11 * 1.5 = 16.5 bit periods
+
+target timer count=((16000000/A2)/(960*1.5))-1 [((16000000/1)/(9600*11*1.5))-1]
 rounded timer count=ROUND(target timer count '1', 0)
 (D)=(16000000/A2)/(target timer count '1'+1)
 (E)=(16000000/A2)/(rounded timer count '1'+1)
@@ -300,11 +305,10 @@ void setup() {
     // zero-out channel text buffer, including trailing nul
     memset(channel_text_data, 0, CHANNEL_TEXT_LENGTH + 1);
     
-    // Set up timer2 at Fcpu/1 (no prescaler) for contention detection. Must
-    // be done before any IBus serial activity!
+    // Set up timer2 at Fcpu/64 for contention detection. Must be done before 
+    // any IBus serial activity!
     //     CS22:1, CS21:0, CS20:0
-    TCCR2B |= _BV(CS22);
-    TCCR2B &= ~(_BV(CS21) | _BV(CS20));
+    TCCR2B = _BV(CS22); // ~_BV(CS21) | ~_BV(CS20);
     
     // set up serial for IBus; 9600,8,E,1
     Serial.begin(9600);
