@@ -1,0 +1,43 @@
+digraph {
+    
+    "start" [shape=Mdiamond];
+    
+    // states
+    "UNKNOWN" [style=filled, color=lightgrey];
+    "SIMPLE" [style=filled, color=lightgrey];
+    "SWITCHING_TO_ADVANCED" [style=filled, color=lightgrey];
+    "ADVANCED" [style=filled, color=lightgrey];
+    
+    // decision points
+    "RX high?" [shape=diamond];
+    "RX low?" [shape=diamond];
+    "Advanced\nrequested?" [shape=diamond];
+    "Got iPod status?" [shape=diamond];
+    "Timeout?" [shape=diamond];
+    
+    // transitions
+    "start" -> "UNKNOWN" [label = "init()"];
+    
+    "UNKNOWN" -> "RX high?" [arrowhead=diamond];
+    "RX high?" -> "UNKNOWN" [label = "no"];
+    "RX high?" -> "SIMPLE" [label = "yes"];
+     
+    "SIMPLE" -> "RX low?" [label="(1)", arrowhead=diamond];
+    "SIMPLE" -> "Advanced\nrequested?" [label="(2)", arrowhead=diamond];
+    "Advanced\nrequested?" -> "SWITCHING_TO_ADVANCED" [label="yes"];
+    "Advanced\nrequested?" -> "SIMPLE" [label="no"];
+    
+    "RX low?" -> "UNKNOWN" [label = "yes"];
+    "RX low?" -> "SIMPLE" [label = "no"];
+    
+    "SWITCHING_TO_ADVANCED" -> "Got iPod status?" [arrowhead=diamond];
+    "Got iPod status?" -> "ADVANCED" [label = "yes"];
+    "SWITCHING_TO_ADVANCED" -> "Timeout?" [arrowhead=diamond];
+    "Timeout?" -> "UNKNOWN" [label = "yes"];
+
+    "SWITCHING_TO_ADVANCED" -> "Advanced\nrequested?" [arrowhead=diamond];
+    "ADVANCED" -> "Advanced\nrequested?" [arrowhead=diamond];
+    "Advanced\nrequested?" -> "ADVANCED" [label="yes"];
+    "ADVANCED" -> "Timeout?" [arrowhead=diamond];
+    
+}
